@@ -1,0 +1,35 @@
+<Project>
+  <PropertyGroup>
+    <ProjectPrefix>OT</ProjectPrefix>
+    <AppName>OptimalyTemplate</AppName>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    
+    <!-- Docker Configuration -->
+    <DockerPostgresPort>5434</DockerPostgresPort>
+    <DockerPgAdminPort>5051</DockerPgAdminPort>
+    <DockerDbName>$(AppName)_db</DockerDbName>
+    <DockerDbUser>$(AppName)_user</DockerDbUser>
+    <DockerDbPassword>$(AppName)2024!</DockerDbPassword>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>Your Name</Authors>
+    <Company>Your Company</Company>
+    <Product>$(AppName)</Product>
+    <Copyright>Copyright © $(Company) $([System.DateTime]::Now.Year)</Copyright>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.7" />
+  </ItemGroup>
+</Project>

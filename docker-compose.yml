@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: {{APP_NAME_LOWER}}-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: {{DOCKER_DB_USER}}
+      POSTGRES_PASSWORD: {{DOCKER_DB_PASSWORD}}
+      POSTGRES_DB: {{DOCKER_DB_NAME}}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "{{DOCKER_POSTGRES_PORT}}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U {{DOCKER_DB_USER}} -d {{DOCKER_DB_NAME}}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: {{APP_NAME_LOWER}}-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@{{APP_NAME_LOWER}}.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - "{{DOCKER_PGADMIN_PORT}}:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+    name: {{APP_NAME_LOWER}}_postgres_data
+  pgadmin-data:
+    name: {{APP_NAME_LOWER}}_pgadmin_data
+
+networks:
+  default:
+    name: {{APP_NAME_LOWER}}_network

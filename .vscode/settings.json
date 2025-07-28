@@ -1,0 +1,15 @@
+{
+    "dotnet.defaultSolution": "OptimalyTemplate.sln",
+    "omnisharp.enableEditorConfigSupport": true,
+    "omnisharp.enableRoslynAnalyzers": true,
+    "files.exclude": {
+        "**/bin": true,
+        "**/obj": true
+    },
+    "search.exclude": {
+        "**/bin": true,
+        "**/obj": true,
+        "**/node_modules": true
+    },
+    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true
+}
