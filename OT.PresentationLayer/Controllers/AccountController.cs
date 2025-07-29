@@ -26,7 +26,7 @@ public class AccountController : Controller
     }
 
     [HttpGet]
-    public IActionResult Login(string returnUrl = "")
+    public IActionResult Login(string? returnUrl = null)
     {
         var model = new LoginViewModel { ReturnUrl = returnUrl };
         return View(model);
@@ -38,11 +38,16 @@ public class AccountController : Controller
     {
         if (ModelState.IsValid)
         {
+            _logger.LogInformation("Attempting login for user: {Email}", model.Email);
+            
             var result = await _signInManager.PasswordSignInAsync(
                 model.Email, 
                 model.Password, 
                 model.RememberMe, 
                 lockoutOnFailure: false);
+
+            _logger.LogInformation("Login result for {Email}: Succeeded={Succeeded}, IsLockedOut={IsLockedOut}, RequiresTwoFactor={RequiresTwoFactor}", 
+                model.Email, result.Succeeded, result.IsLockedOut, result.RequiresTwoFactor);
 
             if (result.Succeeded)
             {
@@ -66,7 +71,16 @@ public class AccountController : Controller
                 return RedirectToAction("Index", "Home");
             }
 
-            ModelState.AddModelError(string.Empty, "Invalid login credentials.");
+            _logger.LogWarning("Failed login attempt for user: {Email}", model.Email);
+            ModelState.AddModelError(string.Empty, "Neplatné přihlašovací údaje.");
+        }
+        else
+        {
+            _logger.LogWarning("ModelState is invalid for login attempt: {Email}", model.Email);
+            foreach (var error in ModelState)
+            {
+                _logger.LogWarning("ModelState error for {Key}: {Errors}", error.Key, string.Join(", ", error.Value?.Errors?.Select(e => e.ErrorMessage) ?? new string[0]));
+            }
         }
 
         return View(model);
@@ -82,6 +96,12 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
+        // Custom validation for terms agreement
+        if (!model.AgreeToTerms)
+        {
+            ModelState.AddModelError(nameof(model.AgreeToTerms), "Musíte souhlasit s podmínkami");
+        }
+
         if (ModelState.IsValid)
         {
             var user = new User
@@ -107,6 +127,27 @@ public class AccountController : Controller
                 ModelState.AddModelError(string.Empty, error.Description);
             }
         }
+
+        return View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Profile()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return RedirectToAction("Login");
+        }
+
+        var model = new ProfileViewModel
+        {
+            Email = user.Email!,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            CreatedAt = user.CreatedAt,
+            LastLoginAt = user.LastLoginAt
+        };
 
         return View(model);
     }

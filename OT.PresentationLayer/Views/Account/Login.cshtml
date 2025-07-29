@@ -29,7 +29,7 @@
             <p class="login-box-msg">Přihlaste se pro zahájení relace</p>
 
             <form asp-action="Login" method="post">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
                 <input type="hidden" asp-for="ReturnUrl" />
 
                 <div class="input-group mb-3">
@@ -54,9 +54,9 @@
 
                 <div class="row">
                     <div class="col-8">
-                        <div class="icheck-primary">
-                            <input asp-for="RememberMe" type="checkbox" id="remember">
-                            <label for="remember">
+                        <div class="form-check">
+                            <input asp-for="RememberMe" class="form-check-input" type="checkbox" id="remember">
+                            <label class="form-check-label" for="remember">
                                 Zapamatovat si mě
                             </label>
                         </div>
@@ -85,5 +85,37 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/3.2.0/js/adminlte.min.js"></script>
 
 @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+<script>
+$(document).ready(function() {
+    $('form[asp-action="Login"]').on('submit', function(e) {
+        console.log('Form submitted');
+        var email = $('input[name="Email"]').val();
+        var password = $('input[name="Password"]').val();
+        console.log('Email:', email);
+        console.log('Password length:', password.length);
+        
+        // Show loading state
+        var submitBtn = $(this).find('button[type="submit"]');
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Přihlašuji...');
+        
+        // Re-enable button after 5 seconds in case of issues
+        setTimeout(function() {
+            submitBtn.prop('disabled', false).html('Přihlásit');
+        }, 5000);
+    });
+    
+    // Check for validation errors on page load
+    if ($('.text-danger').length > 0) {
+        console.log('Validation errors found:');
+        $('.text-danger').each(function() {
+            var errorText = $(this).text().trim();
+            if (errorText) {
+                console.log('Error:', errorText);
+            }
+        });
+    }
+});
+</script>
 </body>
 </html>

@@ -1,0 +1,135 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "Můj profil";
+    ViewData["Breadcrumbs"] = "<li class='breadcrumb-item'><a href='/'>Home</a></li><li class='breadcrumb-item active'>Profil</li>";
+}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Profile Info Card -->
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-user"></i> Informace o profilu
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong><i class="fas fa-envelope mr-1"></i> Email</strong>
+                                <p class="text-muted">@Model.Email</p>
+                                <hr>
+
+                                <strong><i class="fas fa-user mr-1"></i> Jméno</strong>
+                                <p class="text-muted">
+                                    @if (!string.IsNullOrEmpty(Model.FirstName))
+                                    {
+                                        @Model.FirstName
+                                    }
+                                    else
+                                    {
+                                        <em>Neuvedeno</em>
+                                    }
+                                </p>
+                                <hr>
+
+                                <strong><i class="fas fa-user mr-1"></i> Příjmení</strong>
+                                <p class="text-muted">
+                                    @if (!string.IsNullOrEmpty(Model.LastName))
+                                    {
+                                        @Model.LastName
+                                    }
+                                    else
+                                    {
+                                        <em>Neuvedeno</em>
+                                    }
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong><i class="fas fa-calendar-alt mr-1"></i> Registrován</strong>
+                                <p class="text-muted">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
+                                <hr>
+
+                                <strong><i class="fas fa-sign-in-alt mr-1"></i> Poslední přihlášení</strong>
+                                <p class="text-muted">
+                                    @if (Model.LastLoginAt.HasValue)
+                                    {
+                                        @Model.LastLoginAt.Value.ToString("dd.MM.yyyy HH:mm")
+                                    }
+                                    else
+                                    {
+                                        <em>Poprvé přihlášen</em>
+                                    }
+                                </p>
+                                <hr>
+
+                                <strong><i class="fas fa-clock mr-1"></i> Člen od</strong>
+                                <p class="text-muted">@Model.CreatedAt.ToString("MMMM yyyy")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Profile Actions Card -->
+                <div class="card card-success">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-cog"></i> Akce
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center">
+                            <div class="avatar-lg mb-3">
+                                <i class="fas fa-user-circle fa-5x text-primary"></i>
+                            </div>
+                            <h4>@Model.FullName</h4>
+                            <p class="text-muted">@Model.Email</p>
+                        </div>
+                        <hr>
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-warning btn-block" disabled>
+                                <i class="fas fa-edit"></i> Upravit profil
+                            </button>
+                            <small class="text-muted text-center">Úprava profilu bude dostupná v příští verzi</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Stats Card -->
+                <div class="card card-info">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-bar"></i> Statistiky účtu
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-6 text-center">
+                                <div class="description-block border-right">
+                                    <span class="description-percentage text-success">
+                                        <i class="fas fa-calendar-check"></i>
+                                    </span>
+                                    <h5 class="description-header">@((DateTime.Now - Model.CreatedAt).Days)</h5>
+                                    <span class="description-text">Dní členství</span>
+                                </div>
+                            </div>
+                            <div class="col-6 text-center">
+                                <div class="description-block">
+                                    <span class="description-percentage text-info">
+                                        <i class="fas fa-user-check"></i>
+                                    </span>
+                                    <h5 class="description-header">Aktivní</h5>
+                                    <span class="description-text">Status účtu</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

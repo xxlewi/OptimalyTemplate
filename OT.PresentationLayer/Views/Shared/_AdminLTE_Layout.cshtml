@@ -62,20 +62,25 @@
                 @{
                     string displayName = "Nepřihlášen";
                     string avatarText = "?";
+                    string memberSince = "";
+                    User? currentUser = null;
+                    
                     if (User.Identity?.IsAuthenticated == true)
                     {
-                        var currentUser = await UserManager.GetUserAsync(User);
+                        currentUser = await UserManager.GetUserAsync(User);
                         if (currentUser != null)
                         {
                             var fullName = $"{currentUser.FirstName} {currentUser.LastName}".Trim();
                             displayName = !string.IsNullOrEmpty(fullName) ? fullName : currentUser.UserName ?? currentUser.Email ?? "Uživatel";
                             avatarText = !string.IsNullOrEmpty(currentUser.FirstName) ? currentUser.FirstName.Substring(0, 1).ToUpper() : 
                                         currentUser.Email?.Substring(0, 1).ToUpper() ?? "U";
+                            memberSince = currentUser.CreatedAt.ToString("MMMM yyyy");
                         }
                         else
                         {
                             displayName = User.Identity.Name ?? "Uživatel";
                             avatarText = displayName.Substring(0, 1).ToUpper();
+                            memberSince = "neznámo";
                         }
                     }
                 }
@@ -101,12 +106,12 @@
                                 <i class="fas fa-user-circle fa-5x text-white mb-3"></i>
                                 <p>
                                     @displayName
-                                    <small>Členem od @(await UserManager.GetUserAsync(User))?.CreatedAt.ToString("MMMM yyyy")</small>
+                                    <small>Členem od @memberSince</small>
                                 </p>
                             </li>
                             <!-- Menu Footer-->
                             <li class="user-footer">
-                                <a href="#" class="btn btn-default btn-flat">Profil</a>
+                                <a asp-controller="Account" asp-action="Profile" class="btn btn-default btn-flat">Profil</a>
                                 <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline float-right">
                                     <button type="submit" class="btn btn-default btn-flat">Odhlásit se</button>
                                 </form>

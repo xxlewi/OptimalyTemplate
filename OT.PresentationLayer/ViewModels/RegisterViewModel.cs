@@ -17,19 +17,17 @@ public class RegisterViewModel
     [Display(Name = "Email")]
     public string Email { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Password is required")]
-    [StringLength(100, ErrorMessage = "Password must be at least {2} characters long", MinimumLength = 8)]
+    [Required(ErrorMessage = "Heslo je povinné")]
+    [StringLength(100, ErrorMessage = "Heslo musí mít alespoň {2} znaků", MinimumLength = 6)]
     [DataType(DataType.Password)]
     [Display(Name = "Heslo")]
     public string Password { get; set; } = string.Empty;
 
     [DataType(DataType.Password)]
-    [Display(Name = "Confirm password")]
-    [Compare("Password", ErrorMessage = "Passwords do not match")]
+    [Display(Name = "Potvrdit heslo")]
+    [Compare("Password", ErrorMessage = "Hesla se neshodují")]
     public string ConfirmPassword { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "You must agree to the terms of service")]
-    [Range(typeof(bool), "true", "true", ErrorMessage = "You must agree to the terms of service")]
-    [Display(Name = "I agree to the terms of service")]
+    [Display(Name = "Souhlasím s podmínkami")]
     public bool AgreeToTerms { get; set; }
 }

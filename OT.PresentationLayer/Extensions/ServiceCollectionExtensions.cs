@@ -16,15 +16,15 @@ public static class ServiceCollectionExtensions
         services.AddDefaultIdentity<User>(options =>
         {
             // Account settings
-            options.SignIn.RequireConfirmedAccount = true; // Require email confirmation
+            options.SignIn.RequireConfirmedAccount = false; // For development - disable email confirmation
             
-            // Password policy - enterprise grade
-            options.Password.RequireDigit = true;
+            // Password policy - relaxed for development (tighten in production)
+            options.Password.RequireDigit = false;
             options.Password.RequireLowercase = true;
-            options.Password.RequireUppercase = true;
-            options.Password.RequireNonAlphanumeric = true;
-            options.Password.RequiredLength = 8;
-            options.Password.RequiredUniqueChars = 4;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 6;
+            options.Password.RequiredUniqueChars = 1;
             
             // Lockout settings
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);

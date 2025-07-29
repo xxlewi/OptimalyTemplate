@@ -17,5 +17,5 @@ public class LoginViewModel
     [Display(Name = "Zapamatovat si mě")]
     public bool RememberMe { get; set; }
 
-    public string ReturnUrl { get; set; } = string.Empty;
+    public string? ReturnUrl { get; set; }
 }
