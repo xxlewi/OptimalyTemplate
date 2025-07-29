@@ -12,15 +12,28 @@ public static class ServiceCollectionExtensions
     {
         services.AddAutoMapper(typeof(ViewModelMappingProfile));
         
-        // Configure Identity s naší vlastní User entitou
+        // Configure Identity s enterprise-grade security settings
         services.AddDefaultIdentity<User>(options =>
         {
-            options.SignIn.RequireConfirmedAccount = false;
+            // Account settings
+            options.SignIn.RequireConfirmedAccount = true; // Require email confirmation
+            
+            // Password policy - enterprise grade
             options.Password.RequireDigit = true;
             options.Password.RequireLowercase = true;
             options.Password.RequireUppercase = true;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequiredLength = 6;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequiredLength = 8;
+            options.Password.RequiredUniqueChars = 4;
+            
+            // Lockout settings
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
+            
+            // User settings  
+            options.User.RequireUniqueEmail = true;
+            options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@";
         })
         .AddEntityFrameworkStores<ApplicationDbContext>();
         

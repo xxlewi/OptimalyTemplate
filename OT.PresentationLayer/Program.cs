@@ -44,7 +44,10 @@ try
 
     var app = builder.Build();
 
-    // Globální exception handling middleware musí být první
+    // Security headers middleware - musí být první
+    app.UseMiddleware<SecurityHeadersMiddleware>();
+    
+    // Globální exception handling middleware
     app.UseMiddleware<GlobalExceptionMiddleware>();
 
     app.UseSerilogRequestLogging(options =>

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using OT.DataLayer.Entities;
-using OT.DataLayer.Interfaces;
+using OT.ServiceLayer.Interfaces;
 using OT.PresentationLayer.ViewModels;
 
 namespace OT.PresentationLayer.Controllers;
@@ -10,20 +10,18 @@ public class AccountController : Controller
 {
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
-    private readonly IUserRepository _userRepository;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserService _userService;
     private readonly ILogger<AccountController> _logger;
 
     public AccountController(
         UserManager<User> userManager, 
         SignInManager<User> signInManager,
-        IUnitOfWork unitOfWork,
+        IUserService userService,
         ILogger<AccountController> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
-        _userRepository = unitOfWork.Users; // Získáme z UnitOfWork
-        _unitOfWork = unitOfWork;
+        _userService = userService;
         _logger = logger;
     }
 
@@ -48,11 +46,18 @@ public class AccountController : Controller
 
             if (result.Succeeded)
             {
-                // Aktualizuj LastLoginAt pomocí naší repository
-                await _userRepository.UpdateLastLoginAsync(model.Email);
-                await _unitOfWork.SaveChangesAsync();
+                // Update last login through service layer
+                try
+                {
+                    await _userService.UpdateLastLoginAsync(model.Email);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to update last login for user {Email}", model.Email);
+                    // Don't fail login if last login update fails
+                }
                 
-                _logger.LogInformation("Uživatel {Email} se úspěšně přihlásil", model.Email);
+                _logger.LogInformation("User {Email} successfully logged in", model.Email);
 
                 if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
                 {
@@ -61,7 +66,7 @@ public class AccountController : Controller
                 return RedirectToAction("Index", "Home");
             }
 
-            ModelState.AddModelError(string.Empty, "Neplatné přihlašovací údaje.");
+            ModelState.AddModelError(string.Empty, "Invalid login credentials.");
         }
 
         return View(model);
@@ -93,6 +98,7 @@ public class AccountController : Controller
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(user, isPersistent: false);
+                _logger.LogInformation("New user {Email} registered successfully", user.Email);
                 return RedirectToAction("Index", "Home");
             }
 

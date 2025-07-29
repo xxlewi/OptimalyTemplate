@@ -3,6 +3,11 @@ using OT.ServiceLayer.Exceptions;
 
 namespace OT.PresentationLayer.Controllers;
 
+/// <summary>
+/// Test controller for exception handling - DEVELOPMENT ONLY
+/// This controller is automatically excluded from production builds
+/// </summary>
+#if DEBUG
 [ApiController]
 [Route("api/[controller]")]
 public class TestController : ControllerBase
@@ -51,6 +56,7 @@ public class TestController : ControllerBase
     public IActionResult TestSuccess()
     {
         _logger.LogInformation("Test úspěšného volání");
-        return Ok(new { Message = "Vše funguje správně!", Timestamp = DateTime.UtcNow });
+        return Ok(new { Message = "Everything works correctly!", Timestamp = DateTime.UtcNow });
     }
 }
+#endif
