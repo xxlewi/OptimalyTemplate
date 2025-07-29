@@ -31,7 +31,7 @@ public class SecurityHeadersMiddleware
                   "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net cdnjs.cloudflare.com; " +
                   "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com fonts.googleapis.com; " +
                   "font-src 'self' fonts.gstatic.com cdn.jsdelivr.net cdnjs.cloudflare.com; " +
-                  "img-src 'self' data: cdn.jsdelivr.net via.placeholder.com; " +
+                  "img-src 'self' data: cdn.jsdelivr.net via.placeholder.com blob:; " +
                   "connect-src 'self'; " +
                   "frame-ancestors 'none';";
         
