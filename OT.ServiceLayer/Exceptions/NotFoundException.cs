@@ -7,12 +7,12 @@ public class NotFoundException : BusinessException
     }
 
     public NotFoundException(string entityName, object key) 
-        : base($"Entita '{entityName}' s klíčem '{key}' nebyla nalezena.", "NOT_FOUND")
+        : base($"Entity '{entityName}' with key '{key}' was not found.", "NOT_FOUND")
     {
     }
 
     public NotFoundException(Type entityType, object key)
-        : base($"Entita typu '{entityType.Name}' s klíčem '{key}' nebyla nalezena.", "NOT_FOUND")
+        : base($"Entity of type '{entityType.Name}' with key '{key}' was not found.", "NOT_FOUND")
     {
     }
 }

@@ -10,13 +10,13 @@ public class ValidationException : BusinessException
     }
 
     public ValidationException(Dictionary<string, string[]> errors) 
-        : base("Validace selhala", "VALIDATION_ERROR")
+        : base("Validation failed", "VALIDATION_ERROR")
     {
         Errors = errors;
     }
 
     public ValidationException(string field, string error)
-        : base("Validace selhala", "VALIDATION_ERROR")
+        : base("Validation failed", "VALIDATION_ERROR")
     {
         Errors = new Dictionary<string, string[]>
         {

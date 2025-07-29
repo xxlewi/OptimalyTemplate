@@ -1,20 +1,17 @@
 namespace OT.ServiceLayer.DTOs;
 
 /// <summary>
-/// DTO pro User entity s computed properties
-/// Obsahuje pouze data potřebná pro prezentační vrstvu
+/// DTO pro User entity s computed properties.
+/// Dědí z BaseDto string pro správnou architekturu.
 /// </summary>
-public class UserDto
+public class UserDto : BaseDto<string>
 {
-    public string Id { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public DateTime? LastLoginAt { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
     
     // Computed properties - správně patří do DTO, ne do entity
     public string FullName => $"{FirstName} {LastName}".Trim();
