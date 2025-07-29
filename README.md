@@ -7,13 +7,15 @@
 OptimalyTemplate is a **production-ready project template** for building scalable .NET web applications. It provides:
 
 - ✅ **Clean 3-Layer Architecture** (Presentation → Service → Data)
-- ✅ **Repository & Unit of Work** patterns
+- ✅ **Generic Repository & Unit of Work** patterns with true generic support
+- ✅ **ASP.NET Core Identity** with custom User entity and authentication
 - ✅ **PostgreSQL + pgAdmin** Docker setup
 - ✅ **AdminLTE 3.2.0** responsive dashboard
 - ✅ **AutoMapper** for object mapping
 - ✅ **Serilog structured logging** with file and console output
 - ✅ **Global error handling** middleware with custom exceptions
 - ✅ **Health checks** for application, database and PostgreSQL monitoring
+- ✅ **Global query filters** for soft delete functionality
 - ✅ **Dynamic configuration** system for easy project forking
 - ✅ **VS Code integration** with F5 debugging
 
@@ -95,9 +97,9 @@ dotnet run
 - Easy project customization
 
 ### 🏗️ **Solid Architecture**
-- **Presentation Layer**: Controllers, ViewModels, AdminLTE Views
-- **Service Layer**: Business logic, DTOs, AutoMapper
-- **Data Layer**: Entities, Repository, Unit of Work, EF Core
+- **Presentation Layer**: Controllers, ViewModels, AdminLTE Views, Authentication
+- **Service Layer**: Business logic, DTOs, AutoMapper, Custom exceptions
+- **Data Layer**: Generic Repository pattern, UnitOfWork, ASP.NET Core Identity, EF Core
 
 ### 🔄 **Easy Forking**
 1. Change app name in one file
@@ -111,11 +113,13 @@ OptimalyTemplate/
 ├── 🎨 AdminLTE 3.2.0 UI Framework
 ├── 🗄️ PostgreSQL + pgAdmin Docker Setup  
 ├── 🏗️ Clean 3-Layer Architecture
-├── 🔄 Repository & Unit of Work Patterns
+├── 🔄 Generic Repository & Unit of Work Patterns
+├── 👤 ASP.NET Core Identity with Custom User Entity
 ├── 🗺️ AutoMapper Configuration
 ├── 📊 Serilog Structured Logging
 ├── 🛡️ Global Error Handling Middleware
 ├── 💓 Health Checks & Monitoring
+├── 🔍 Global Query Filters (Soft Delete)
 ├── 🔐 Security Best Practices
 ├── 📝 VS Code Debug Configuration
 ├── 🚀 Dynamic Project Generation
@@ -125,13 +129,15 @@ OptimalyTemplate/
 ## 🔧 Technologies
 
 - **.NET 9** - Latest .NET framework
-- **ASP.NET Core MVC** - Web framework
+- **ASP.NET Core MVC** - Web framework with Identity
 - **Entity Framework Core** - ORM with PostgreSQL
+- **ASP.NET Core Identity** - Authentication and authorization
 - **AutoMapper** - Object mapping
 - **AdminLTE 3.2.0** - Admin dashboard template
 - **PostgreSQL 16** - Database
 - **Docker** - Containerization
 - **Bootstrap 4** - CSS framework
+- **Serilog** - Structured logging
 
 ## 📋 Creating New Features
 

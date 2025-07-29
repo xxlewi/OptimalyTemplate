@@ -11,8 +11,9 @@ This template implements **Clean Architecture** principles with a **3-Layer Arch
 │                    PRESENTATION LAYER                       │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
 │  │ Controllers │  │ ViewModels  │  │ Views (AdminLTE)    │  │
-│  │ - Home      │  │ - Base      │  │ - Dashboard         │  │
-│  │ - Product   │  │ - Product   │  │ - Layout            │  │
+│  │ - Home      │  │ - Login     │  │ - Dashboard         │  │
+│  │ - Account   │  │ - Register  │  │ - Authentication    │  │
+│  │ - Health    │  │ - Base      │  │ - Layout            │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
 │           │                │                    │           │
 │           └────────────────┼────────────────────┘           │
@@ -22,9 +23,10 @@ This template implements **Clean Architecture** principles with a **3-Layer Arch
 ┌────────────────────────────┼────────────────────────────────┐
 │                    SERVICE LAYER                            │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
-│  │ Services    │  │ DTOs        │  │ Interfaces          │  │
-│  │ - Base      │  │ - Base      │  │ - IBaseService      │  │
-│  │ - Product   │  │ - Product   │  │ - IProductService   │  │
+│  │ Services    │  │ DTOs        │  │ Exceptions          │  │
+│  │ - Base      │  │ - Base      │  │ - Business          │  │
+│  │ - User      │  │ - User      │  │ - Validation        │  │
+│  │ - Custom    │  │ - Custom    │  │ - NotFound          │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
 │           │                │                    │           │
 │           └────────────────┼────────────────────┘           │
@@ -35,13 +37,16 @@ This template implements **Clean Architecture** principles with a **3-Layer Arch
 │                     DATA LAYER                              │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
 │  │ Entities    │  │ Repository  │  │ DbContext           │  │
-│  │ - Base      │  │ - Generic   │  │ - Application       │  │
-│  │ - Product   │  │ - UnitOfWork│  │ - Configurations    │  │
+│  │ - User      │  │ - Generic   │  │ - Identity          │  │
+│  │ - Base      │  │ - User      │  │ - Query Filters     │  │
+│  │ - Custom    │  │ - UnitOfWork│  │ - Configurations    │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
                              │
                     ┌────────┼────────┐
                     │ PostgreSQL DB   │
+                    │ + ASP.NET       │
+                    │   Identity      │
                     │ + pgAdmin       │
                     └─────────────────┘
 ```
@@ -65,16 +70,28 @@ This template implements **Clean Architecture** principles with a **3-Layer Arch
 OT.PresentationLayer/
 ├── Controllers/
 │   ├── HomeController.cs         # Dashboard controller
-│   └── ProductController.cs      # CRUD operations
+│   ├── AccountController.cs      # Authentication (Login/Register)
+│   ├── HealthController.cs       # Health monitoring UI
+│   └── TestController.cs         # Error handling testing
 ├── ViewModels/
-│   ├── BaseViewModel.cs          # Base class with audit info
-│   └── ProductViewModel.cs       # Product-specific view data
+│   ├── LoginViewModel.cs         # Login form data
+│   ├── RegisterViewModel.cs      # Registration form data
+│   └── BaseViewModel.cs          # Base class with audit info
 ├── Views/
 │   ├── Shared/
-│   │   ├── _AdminLTE_Layout.cshtml  # Main AdminLTE layout
+│   │   ├── _AdminLTE_Layout.cshtml  # Main AdminLTE layout with user info
 │   │   └── _Layout.cshtml           # Layout wrapper
+│   ├── Account/
+│   │   ├── Login.cshtml             # Login page
+│   │   └── Register.cshtml          # Registration page
+│   ├── Health/
+│   │   └── Index.cshtml             # Health check dashboard
 │   └── Home/
 │       └── Index.cshtml             # Dashboard with widgets
+├── Middleware/
+│   └── GlobalExceptionMiddleware.cs # Global error handling
+├── HealthChecks/
+│   └── ApplicationHealthCheck.cs    # Custom health check
 ├── Mapping/
 │   └── ViewModelMappingProfile.cs   # AutoMapper DTO → ViewModel
 └── Extensions/
@@ -97,14 +114,15 @@ OT.PresentationLayer/
 ```
 OT.ServiceLayer/
 ├── Services/
-│   ├── BaseService.cs            # Generic CRUD operations
-│   └── ProductService.cs         # Product-specific business logic
+│   └── BaseService.cs            # Generic CRUD operations
 ├── DTOs/
-│   ├── BaseDto.cs               # Base DTO with audit fields
-│   └── ProductDto.cs            # Product data transfer object
+│   └── UserDto.cs               # User data transfer object with computed properties
 ├── Interfaces/
-│   ├── IBaseService.cs          # Generic service interface
-│   └── IProductService.cs       # Product service contract
+│   └── IBaseService.cs          # Generic service interface
+├── Exceptions/
+│   ├── BusinessException.cs      # Business logic errors (400)
+│   ├── ValidationException.cs    # Validation errors (400)
+│   └── NotFoundException.cs      # Not found errors (404)
 ├── Mapping/
 │   └── MappingProfile.cs        # AutoMapper Entity → DTO
 └── Extensions/
@@ -127,19 +145,23 @@ OT.ServiceLayer/
 ```
 OT.DataLayer/
 ├── Entities/
-│   ├── BaseEntity.cs            # Audit fields (CreatedAt, UpdatedAt, IsDeleted)
-│   └── Product.cs               # Product domain model
+│   ├── User.cs                  # Custom user entity extending IdentityUser
+│   └── BaseEntity.cs            # Audit fields (CreatedAt, UpdatedAt, IsDeleted)
 ├── Data/
-│   └── ApplicationDbContext.cs   # EF Core context with auto-audit
+│   └── ApplicationDbContext.cs   # EF Core Identity context with global query filters
 ├── Repositories/
-│   ├── Repository.cs            # Generic repository with soft delete
-│   └── UnitOfWork.cs            # Transaction management
+│   ├── BaseRepository.cs        # Generic repository with ConfigureAwait(false)
+│   ├── Repository.cs            # Repository for BaseEntity (int ID)
+│   ├── UserRepository.cs        # User-specific repository methods
+│   └── UnitOfWork.cs            # Transaction management with audit logic
 ├── Interfaces/
-│   ├── IRepository.cs           # Repository contract
+│   ├── IBaseEntity.cs           # Base entity interfaces (TKey support)
+│   ├── IRepository.cs           # Generic repository contracts
+│   ├── IUserRepository.cs       # User repository contract
 │   └── IUnitOfWork.cs           # Unit of work contract
 ├── Configurations/
-│   └── ProductConfiguration.cs   # EF entity configuration
-├── Migrations/                   # EF Core migrations
+│   └── UserConfiguration.cs     # User entity EF configuration
+├── Migrations/                   # EF Core migrations with Identity
 └── Extensions/
     └── ServiceCollectionExtensions.cs
 ```
@@ -165,28 +187,50 @@ Entity (Data) → DTO (Service) → ViewModel (Presentation)
 
 ## 🧩 Design Patterns
 
-### 🏪 Repository Pattern
-- **Generic Repository**: `Repository<T>` for common CRUD operations
-- **Specific Repositories**: Can be added for complex queries
-- **Soft Delete**: All deletes are logical (IsDeleted = true)
+### 🏪 Generic Repository Pattern
+- **True Generic Repository**: `IRepository<TEntity, TKey>` supports any entity and ID type
+- **Backward Compatibility**: `IRepository<TEntity>` for int ID entities  
+- **User-Specific Repository**: `IUserRepository` for Identity operations
+- **Global Query Filters**: Automatic soft delete filtering
+- **ConfigureAwait(false)**: All async operations optimized for performance
 
 ```csharp
-public interface IRepository<T> where T : BaseEntity
+public interface IRepository<TEntity, TKey> where TEntity : class, IBaseEntity<TKey>
 {
-    Task<IEnumerable<T>> GetAllAsync();
-    Task<T> GetByIdAsync(int id);
-    Task<T> CreateAsync(T entity);
-    Task<T> UpdateAsync(T entity);
-    Task DeleteAsync(int id); // Soft delete
+    Task<TEntity?> GetByIdAsync(TKey id, CancellationToken cancellationToken = default);
+    Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
+    Task AddAsync(TEntity entity, CancellationToken cancellationToken = default);
+    void Update(TEntity entity);  // Synchronní - pouze mark pro update
+    void Delete(TEntity entity);  // Soft delete
+}
+
+// User repository s string ID
+public interface IUserRepository : IRepository<User, string>
+{
+    Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<IEnumerable<User>> GetActiveUsersAsync(CancellationToken cancellationToken = default);
+    Task UpdateLastLoginAsync(string emailOrUserId, CancellationToken cancellationToken = default);
 }
 ```
 
-### 🔄 Unit of Work Pattern
+### 🔄 Enhanced Unit of Work Pattern
 ```csharp
-public interface IUnitOfWork : IDisposable
+public interface IUnitOfWork : IDisposable, IAsyncDisposable
 {
-    IRepository<T> Repository<T>() where T : BaseEntity;
-    Task<int> SaveChangesAsync();
+    // Repository přístup s lazy loading
+    IUserRepository Users { get; }
+    IRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseEntity;  // int ID
+    IRepository<TEntity, TKey> GetRepository<TEntity, TKey>() where TEntity : class, IBaseEntity<TKey>;  // generic ID
+    
+    // Transaction management
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    Task BeginTransactionAsync(CancellationToken cancellationToken = default);
+    Task CommitTransactionAsync(CancellationToken cancellationToken = default);
+    Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
+    
+    // Bulk operations
+    Task<int> ExecuteSqlAsync(string sql, CancellationToken cancellationToken = default, params object[] parameters);
 }
 ```
 
@@ -340,6 +384,7 @@ _AdminLTE_Layout.cshtml (Master)
 
 ### 🗄️ Data Layer
 - `Microsoft.EntityFrameworkCore` (9.0.7)
+- `Microsoft.AspNetCore.Identity.EntityFrameworkCore` (9.0.7)
 - `Npgsql.EntityFrameworkCore.PostgreSQL` (9.0.4)
 
 ### 🔧 Service Layer
@@ -348,6 +393,10 @@ _AdminLTE_Layout.cshtml (Master)
 
 ### 🖥️ Presentation Layer
 - `Microsoft.EntityFrameworkCore.Design` (9.0.7) - for migrations
+- `Microsoft.AspNetCore.Identity.UI` (9.0.7) - for Identity scaffolding
+- `Serilog.AspNetCore` (8.0.1) - structured logging
+- `Serilog.Sinks.File` (5.0.0) - file logging
+- `AspNetCore.HealthChecks.Npgsql` (8.0.1) - PostgreSQL health checks
 
 ## 🔧 Configuration Management
 
