@@ -36,6 +36,33 @@
                 "${workspaceFolder}/OT.PresentationLayer"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "kill-dotnet-processes",
+            "type": "shell",
+            "command": "pkill",
+            "args": [
+                "-f",
+                "dotnet.*OT.PresentationLayer"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "echo": false,
+                "reveal": "never",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "kill-and-build",
+            "dependsOrder": "sequence",
+            "dependsOn": ["kill-dotnet-processes", "build"],
+            "problemMatcher": []
         }
     ]
 }

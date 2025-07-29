@@ -5,14 +5,14 @@
             "name": ".NET Core Launch (web)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "kill-and-build",
             "program": "${workspaceFolder}/OT.PresentationLayer/bin/Debug/net9.0/OT.PresentationLayer.dll",
             "args": [],
             "cwd": "${workspaceFolder}/OT.PresentationLayer",
             "stopAtEntry": false,
             "serverReadyAction": {
                 "action": "openExternally",
-                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+                "pattern": "\\s+(https?://\\S+)"
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
