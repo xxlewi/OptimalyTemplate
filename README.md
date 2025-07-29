@@ -73,6 +73,10 @@ cd ../OT.PresentationLayer
 dotnet run
 ```
 
+**🐛 Debugging with VS Code:**
+- Press **F5** to start debugging (opens browser automatically on http://localhost:5020)
+- If port conflicts occur, run: `./kill-dotnet.sh` then try F5 again
+
 **🎉 Done!** Your app is running with:
 - **Web App**: http://localhost:5000
 - **pgAdmin**: http://localhost:5051 (admin@yourlowerappname.local / admin123)

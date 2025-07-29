@@ -40,10 +40,10 @@
         {
             "label": "kill-dotnet-processes",
             "type": "shell",
-            "command": "pkill",
+            "command": "bash",
             "args": [
-                "-f",
-                "dotnet.*OT.PresentationLayer"
+                "-c",
+                "pkill -f 'dotnet.*OT.PresentationLayer' || true"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
