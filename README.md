@@ -22,6 +22,8 @@ OptimalyTemplate is a **production-ready project template** for building scalabl
 - ✅ **Business logic validation** with custom exception handling
 - ✅ **Dynamic configuration** system for easy project forking
 - ✅ **VS Code integration** with F5 debugging
+- ✅ **Template Entity System** - Complete CRUD reference implementation
+- ✅ **AdminLTE CRUD Views** with pagination, filtering, and client-side validation
 
 Perfect for **enterprise applications**, **microservices**, or any project requiring solid architectural foundations.
 
@@ -78,7 +80,8 @@ dotnet run
 - If port conflicts occur, run: `./kill-dotnet.sh` then try F5 again
 
 **🎉 Done!** Your app is running with:
-- **Web App**: http://localhost:5000
+- **Web App**: http://localhost:5020
+- **Template CRUD**: http://localhost:5020/TemplateProducts (see complete reference implementation)
 - **pgAdmin**: http://localhost:5051 (admin@yourlowerappname.local / admin123)
 
 ---
@@ -134,6 +137,7 @@ OptimalyTemplate/
 ├── 🔐 Security Headers & XSS Protection
 ├── 📝 VS Code Debug Configuration
 ├── 🚀 Dynamic Project Generation
+├── 📝 Template Entity System (TemplateProduct/TemplateCategory)
 └── 📚 Comprehensive Documentation
 ```
 
@@ -149,6 +153,118 @@ OptimalyTemplate/
 - **Docker** - Containerization
 - **Bootstrap 4** - CSS framework
 - **Serilog** - Structured logging
+
+## 🎯 Template Entity System
+
+### Complete CRUD Reference Implementation
+
+OptimalyTemplate includes a **complete template entity system** demonstrating best practices for implementing CRUD operations across all architectural layers.
+
+**🔍 Live Demo**: [http://localhost:5020/TemplateProducts](http://localhost:5020/TemplateProducts)
+
+### Template Entities
+- **`TemplateProduct`** - Main product entity with categories, pricing, inventory
+- **`TemplateCategory`** - Product categories with display ordering
+
+### Features Demonstrated
+- ✅ **Complete CRUD Operations** (Create, Read, Update, Delete)
+- ✅ **Entity Relationships** (Product ↔ Category with foreign keys)
+- ✅ **Advanced Querying** with Entity Framework Include() for eager loading
+- ✅ **Business Logic** (price validation, stock management, category restrictions)
+- ✅ **Computed Properties** (effective price, discount percentage, stock status)
+- ✅ **AdminLTE UI** with responsive tables, modals, and forms
+- ✅ **Pagination & Filtering** with search, category filters, and sorting
+- ✅ **Client-Side Validation** with real-time price validation
+- ✅ **Server-Side Validation** with comprehensive error handling
+- ✅ **AutoMapper Integration** between all layers (Entity ↔ DTO ↔ ViewModel)
+- ✅ **Seed Data** for development and testing
+
+### Architecture Layers Covered
+
+**🔸 Entity Layer** (`OT.DataLayer/Entities/`)
+```csharp
+public class TemplateProduct : BaseEntity
+{
+    public string Name { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public decimal? SalePrice { get; set; }
+    public int CategoryId { get; set; }
+    public virtual TemplateCategory Category { get; set; } = null!;
+    
+    // Computed properties for business logic
+    public decimal EffectivePrice => SalePrice ?? Price;
+    public bool IsOnSale => SalePrice.HasValue && SalePrice < Price;
+}
+```
+
+**🔸 Data Layer** (`OT.DataLayer/Configurations/`)
+- EF Core configurations with indexes, constraints, and relationships
+- Seed data for development
+- Database migrations
+
+**🔸 Service Layer** (`OT.ServiceLayer/`)
+- DTOs with computed properties for UI
+- Business logic services with validation
+- AutoMapper profiles for Entity ↔ DTO mapping
+- Comprehensive error handling
+
+**🔸 Presentation Layer** (`OT.PresentationLayer/`)
+- ViewModels with validation attributes
+- Controllers with proper error handling
+- AdminLTE views with pagination and filtering
+- Client-side validation
+
+### Template Files to Study
+
+**📁 Essential Files:**
+```
+🔸 Entities
+├── TemplateProduct.cs          # Main product entity with relationships
+├── TemplateCategory.cs         # Category lookup entity
+
+🔸 Data Configuration  
+├── TemplateProductConfiguration.cs    # EF mappings, indexes, constraints
+├── TemplateCategoryConfiguration.cs   # Category configuration with seed data
+
+🔸 Service Layer
+├── DTOs/TemplateProductDto.cs          # Data transfer objects
+├── Services/TemplateProductService.cs  # Business logic implementation
+├── Mapping/MappingProfile.cs           # AutoMapper Entity ↔ DTO
+
+🔸 Presentation Layer
+├── Controllers/TemplateProductsController.cs  # MVC controller
+├── ViewModels/TemplateProductViewModel.cs     # UI model with validation
+├── Views/TemplateProducts/                    # AdminLTE CRUD views
+    ├── Index.cshtml             # List with pagination & filters
+    ├── Create.cshtml            # Create form with validation
+    ├── Edit.cshtml              # Edit form with validation
+    ├── Details.cshtml           # Read-only detail view
+    └── Delete.cshtml            # Delete confirmation
+```
+
+### Key Learning Points
+
+1. **Generic Repository Pattern** - How to use `IRepository<TEntity, TKey>`
+2. **Unit of Work Pattern** - Proper transaction management
+3. **AutoMapper Configuration** - Multi-layer object mapping
+4. **EF Core Best Practices** - Eager loading, query optimization
+5. **Business Logic Validation** - Server-side and client-side
+6. **AdminLTE Integration** - Professional UI components
+7. **Error Handling** - Comprehensive exception management
+
+### Removing Template Entities (Production)
+
+When ready for production, search for comments containing "Template" and remove:
+```bash
+# Find all template-related files
+find . -name "*Template*" -type f
+grep -r "Template.*remove.*production" --include="*.cs"
+```
+
+Files to remove:
+- All `Template*` entities, DTOs, services, controllers, and views
+- Template-related migrations
+- Template service registrations
 
 ## 📋 Creating New Features
 
@@ -229,14 +345,16 @@ public interface ICustomerService : IBaseService<CustomerDto>
 
 8. **Create Service Implementation** (`OT.ServiceLayer/Services/CustomerService.cs`):
 ```csharp
-public class CustomerService : BaseService<Customer, CustomerDto>, ICustomerService
+public class CustomerService : BaseService<Customer, CustomerDto, int>, ICustomerService
 {
     public CustomerService(IUnitOfWork unitOfWork, IMapper mapper) 
         : base(unitOfWork, mapper) { }
         
     public async Task<IEnumerable<CustomerDto>> GetByEmailAsync(string email)
     {
-        // Custom business logic here
+        var repository = _unitOfWork.GetRepository<Customer, int>();
+        var customers = await repository.FindAsync(c => c.Email == email, cancellationToken);
+        return _mapper.Map<IEnumerable<CustomerDto>>(customers);
     }
 }
 ```

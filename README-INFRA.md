@@ -14,6 +14,7 @@ This template implements **Clean Architecture** principles with a **3-Layer Arch
 │  │ - Home      │  │ - Login     │  │ - Dashboard         │  │
 │  │ - Account   │  │ - Register  │  │ - Authentication    │  │
 │  │ - Health    │  │ - Base      │  │ - Layout            │  │
+│  │ - Template* │  │ - Template* │  │ - Template CRUD     │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
 │           │                │                    │           │
 │           └────────────────┼────────────────────┘           │
@@ -26,7 +27,7 @@ This template implements **Clean Architecture** principles with a **3-Layer Arch
 │  │ Services    │  │ DTOs        │  │ Exceptions          │  │
 │  │ - Base      │  │ - Base      │  │ - Business          │  │
 │  │ - User      │  │ - User      │  │ - Validation        │  │
-│  │ - Custom    │  │ - Custom    │  │ - NotFound          │  │
+│  │ - Template* │  │ - Template* │  │ - NotFound          │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
 │           │                │                    │           │
 │           └────────────────┼────────────────────┘           │
@@ -39,7 +40,7 @@ This template implements **Clean Architecture** principles with a **3-Layer Arch
 │  │ Entities    │  │ Repository  │  │ DbContext           │  │
 │  │ - User      │  │ - Generic   │  │ - Identity          │  │
 │  │ - Base      │  │ - User      │  │ - Query Filters     │  │
-│  │ - Custom    │  │ - UnitOfWork│  │ - Configurations    │  │
+│  │ - Template* │  │ - UnitOfWork│  │ - Configurations    │  │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
                              │
@@ -120,10 +121,14 @@ OT.PresentationLayer/
 OT.ServiceLayer/
 ├── Services/
 │   ├── BaseService.cs            # Generic CRUD with exception handling & validation
-│   └── UserService.cs            # User-specific business logic with validation
+│   ├── UserService.cs            # User-specific business logic with validation
+│   ├── TemplateProductService.cs # Template: Complete CRUD implementation
+│   └── TemplateCategoryService.cs # Template: Lookup entity service
 ├── DTOs/
 │   ├── BaseDto.cs               # Generic DTO with TKey support
 │   ├── UserDto.cs               # User DTO with computed properties
+│   ├── TemplateProductDto.cs    # Template: Product DTO with computed properties
+│   ├── TemplateCategoryDto.cs   # Template: Category DTO with product count
 │   └── PagedResult.cs           # Pagination support
 ├── Interfaces/
 │   ├── IBaseService.cs          # Generic service interface with TKey
@@ -422,6 +427,106 @@ _AdminLTE_Layout.cshtml (Master)
 3. Run `./generate-docker-config.sh`
 4. Update connection string in `appsettings.json`
 5. Start development: `docker-compose -f docker-compose.generated.yml up -d`
+
+## 🎯 Template Entity System - Reference Implementation
+
+### Complete CRUD Reference Architecture
+
+The template includes **TemplateProduct** and **TemplateCategory** entities that demonstrate enterprise-grade CRUD implementation across all architectural layers.
+
+**🔍 Demo**: [http://localhost:5020/TemplateProducts](http://localhost:5020/TemplateProducts)
+
+### Architecture Pattern Implementation
+
+**🔸 Entity Layer (`OT.DataLayer/Entities/`)**
+- ✅ **BaseEntity inheritance** with audit trails (CreatedAt, UpdatedAt, IsDeleted)
+- ✅ **Navigation properties** for EF Core relationships
+- ✅ **Computed properties** for business logic (EffectivePrice, IsOnSale, StockStatus)
+- ✅ **Virtual properties** for lazy loading and change tracking
+
+**🔸 Data Configuration (`OT.DataLayer/Configurations/`)**
+- ✅ **IEntityTypeConfiguration<T>** implementation
+- ✅ **Database constraints** (check constraints, unique indexes)
+- ✅ **Relationship configuration** with proper delete behavior
+- ✅ **Seed data** for development and testing
+- ✅ **Column mappings** with precision and length constraints
+
+**🔸 Service Layer (`OT.ServiceLayer/`)**
+- ✅ **BaseService<TEntity, TDto, TKey>** generic pattern
+- ✅ **Business logic validation** with custom exceptions
+- ✅ **AutoMapper profiles** for Entity ↔ DTO transformation
+- ✅ **Pagination support** with PagedResult<T>
+- ✅ **Repository pattern** usage with Unit of Work
+
+**🔸 Presentation Layer (`OT.PresentationLayer/`)**
+- ✅ **MVC Controller** with proper error handling
+- ✅ **ViewModels** with data annotations for validation
+- ✅ **AdminLTE Views** with responsive design
+- ✅ **Client-side validation** with jQuery
+- ✅ **Pagination & filtering** with search capabilities
+
+### Key Technical Implementations
+
+**Generic Repository Usage:**
+```csharp
+// Correct generic repository pattern
+var repository = _unitOfWork.GetRepository<TemplateProduct, int>();
+var products = await repository.Query
+    .Include(p => p.Category)  // Eager loading
+    .Where(p => p.IsActive)
+    .ToListAsync();
+```
+
+**AutoMapper Configuration:**
+```csharp
+// Entity to DTO mapping with navigation properties
+CreateMap<TemplateProduct, TemplateProductDto>()
+    .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
+    .ReverseMap()
+    .ForMember(dest => dest.Category, opt => opt.Ignore());
+```
+
+**Update Pattern (Fixed):**
+```csharp
+// Proper update with existing entity tracking
+var existingEntity = await _repository.GetByIdAsync(dto.Id);
+_mapper.Map(dto, existingEntity);  // Map changes to tracked entity
+_repository.Update(existingEntity);
+await _unitOfWork.SaveChangesAsync();
+```
+
+**View Integration:**
+```html
+<!-- AdminLTE CRUD with proper validation -->
+<form asp-action="Edit" asp-route-id="@Model.Id">
+    <input asp-for="Price" type="number" step="0.01" min="0" />
+    <span asp-validation-for="Price" class="text-danger"></span>
+</form>
+```
+
+### Business Logic Examples
+
+**Template entities demonstrate:**
+- **Price validation** (Sale price must be less than regular price)
+- **Stock management** with status indicators
+- **Category relationships** with cascade restrictions
+- **Computed properties** for UI display (formatted prices, discount %)
+- **Soft delete** with global query filters
+- **Audit trails** with creation/update timestamps
+
+### Learning Value
+
+These template entities serve as **production-ready reference implementations** showing:
+1. **How to structure entities** with proper relationships
+2. **How to implement services** with business logic
+3. **How to create controllers** with error handling
+4. **How to build views** with validation and UX
+5. **How to configure EF Core** with constraints and indexes
+6. **How to use AutoMapper** between architectural layers
+7. **How to implement pagination** and filtering
+
+**🗑️ Removal for Production:**
+Template entities include comments for easy identification and removal when building actual features.
 
 ## 🎯 Production Readiness
 

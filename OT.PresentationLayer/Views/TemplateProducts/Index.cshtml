@@ -1,26 +1,10 @@
 @model List<TemplateProductViewModel>
 @{
     ViewData["Title"] = "Template Products";
+    ViewData["Breadcrumbs"] = "<li class='breadcrumb-item'><a href='/'>Home</a></li><li class='breadcrumb-item active'>Products</li>";
     var searchModel = ViewBag.SearchModel as ProductSearchViewModel;
     var pagination = ViewBag.Pagination as PaginationViewModel;
 }
-
-<div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1>Template Products</h1>
-                <p class="text-muted">Template CRUD example - remove in production</p>
-            </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
-                    <li class="breadcrumb-item active">Products</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</div>
 
 <section class="content">
     <div class="container-fluid">
