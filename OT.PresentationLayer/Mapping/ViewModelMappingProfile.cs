@@ -11,5 +11,8 @@ public class ViewModelMappingProfile : Profile
         // Template mappings - remove in production
         CreateMap<TemplateProductDto, TemplateProductViewModel>()
             .ReverseMap();
+            
+        CreateMap<TemplateCategoryDto, TemplateCategoryViewModel>()
+            .ReverseMap();
     }
 }

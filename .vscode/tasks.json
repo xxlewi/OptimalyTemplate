@@ -60,8 +60,29 @@
         },
         {
             "label": "kill-and-build",
-            "dependsOrder": "sequence",
-            "dependsOn": ["kill-dotnet-processes", "build"],
+            "type": "shell",
+            "command": "./kill-dotnet.sh && dotnet clean OptimalyTemplate.sln && dotnet build OptimalyTemplate.sln",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "open-browser",
+            "type": "shell",
+            "command": "open",
+            "args": ["http://localhost:5020"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "echo": false,
+                "reveal": "never",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            },
             "problemMatcher": []
         }
     ]

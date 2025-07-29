@@ -9,7 +9,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddServiceLayer(this IServiceCollection services)
     {
-        // AutoMapper konfigurace
+        // ServiceLayer AutoMapper konfigurace
         services.AddAutoMapper(typeof(MappingProfile));
         
         // User service registrace

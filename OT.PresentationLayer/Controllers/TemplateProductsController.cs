@@ -13,7 +13,7 @@ namespace OT.PresentationLayer.Controllers;
 /// Controller for TemplateProduct CRUD operations
 /// Template controller - remove in production
 /// </summary>
-//[Authorize] // Temporarily disabled for testing
+[Authorize]
 public class TemplateProductsController : Controller
 {
     private readonly ITemplateProductService _productService;
@@ -55,7 +55,22 @@ public class TemplateProductsController : Controller
                 page, pageSize, categoryId, isActive, isFeatured, 
                 searchTerm, sortBy, sortDescending);
 
-            var productViewModels = _mapper.Map<List<TemplateProductViewModel>>(pagedResult.Items);
+            var productViewModels = pagedResult.Items.Select(p => new TemplateProductViewModel
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                SalePrice = p.SalePrice,
+                StockQuantity = p.StockQuantity,
+                Sku = p.Sku,
+                IsActive = p.IsActive,
+                IsFeatured = p.IsFeatured,
+                CategoryId = p.CategoryId,
+                CategoryName = p.CategoryName,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt
+            }).ToList();
 
             // Create search view model
             var searchViewModel = new ProductSearchViewModel
@@ -72,20 +87,15 @@ public class TemplateProductsController : Controller
             };
 
             ViewBag.SearchModel = searchViewModel;
-            ViewBag.Pagination = new PaginationViewModel
-            {
-                Page = pagedResult.Page,  
-                PageSize = pagedResult.PageSize,
-                TotalItems = pagedResult.TotalItems
-            };
+            ViewBag.PagedResult = pagedResult;
             ViewBag.Categories = categoryViewModels;
 
             return View(productViewModels);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving products for index page: {Message} | StackTrace: {StackTrace}", ex.Message, ex.StackTrace);
-            TempData["ErrorMessage"] = $"Error loading products: {ex.Message}";
+            _logger.LogError(ex, "Error retrieving products for index page");
+            TempData["ErrorMessage"] = "Error loading products. Please try again.";
             return View(new List<TemplateProductViewModel>());
         }
     }
