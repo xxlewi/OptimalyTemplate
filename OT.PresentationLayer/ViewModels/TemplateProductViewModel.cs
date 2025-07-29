@@ -180,6 +180,21 @@ public class TemplateCategoryViewModel : BaseViewModel
 }
 
 /// <summary>
+/// ViewModel for pagination info
+/// </summary>
+public class PaginationViewModel
+{
+    public int Page { get; set; }
+    public int PageSize { get; set; }  
+    public int TotalItems { get; set; }
+    public int TotalPages => (int)Math.Ceiling((double)TotalItems / PageSize);
+    public bool HasPrevious => Page > 1;
+    public bool HasNext => Page < TotalPages;
+    public int StartItem => TotalItems == 0 ? 0 : (Page - 1) * PageSize + 1;
+    public int EndItem => Math.Min(StartItem + PageSize - 1, TotalItems);
+}
+
+/// <summary>
 /// ViewModel for product search and filtering
 /// </summary>
 public class ProductSearchViewModel

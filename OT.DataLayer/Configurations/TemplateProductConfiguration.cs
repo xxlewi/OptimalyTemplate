@@ -49,7 +49,7 @@ public class TemplateProductConfiguration : IEntityTypeConfiguration<TemplatePro
         builder.HasIndex(p => p.Name);
         builder.HasIndex(p => p.Sku)
             .IsUnique()
-            .HasFilter("[Sku] IS NOT NULL"); // Unique only for non-null values
+            .HasFilter("\"Sku\" IS NOT NULL"); // Unique only for non-null values
         builder.HasIndex(p => p.CategoryId);
         builder.HasIndex(p => p.IsActive);
         builder.HasIndex(p => p.IsFeatured);
@@ -60,11 +60,14 @@ public class TemplateProductConfiguration : IEntityTypeConfiguration<TemplatePro
             .HasForeignKey(p => p.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
         
-        // Check constraints
-        builder.HasCheckConstraint("CK_TemplateProduct_Price_Positive", "[Price] > 0");
-        builder.HasCheckConstraint("CK_TemplateProduct_SalePrice_Positive", "[SalePrice] IS NULL OR [SalePrice] > 0");
-        builder.HasCheckConstraint("CK_TemplateProduct_SalePrice_LessThanPrice", "[SalePrice] IS NULL OR [SalePrice] < [Price]");
-        builder.HasCheckConstraint("CK_TemplateProduct_StockQuantity_NonNegative", "[StockQuantity] >= 0");
+        // Check constraints - using new API for EF Core 8+
+        builder.ToTable(t =>
+        {
+            t.HasCheckConstraint("CK_TemplateProduct_Price_Positive", "\"Price\" > 0");
+            t.HasCheckConstraint("CK_TemplateProduct_SalePrice_Positive", "\"SalePrice\" IS NULL OR \"SalePrice\" > 0");
+            t.HasCheckConstraint("CK_TemplateProduct_SalePrice_LessThanPrice", "\"SalePrice\" IS NULL OR \"SalePrice\" < \"Price\"");
+            t.HasCheckConstraint("CK_TemplateProduct_StockQuantity_NonNegative", "\"StockQuantity\" >= 0");
+        });
         
         // Seed data
         var baseDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);

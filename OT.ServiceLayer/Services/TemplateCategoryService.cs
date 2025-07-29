@@ -12,7 +12,7 @@ namespace OT.ServiceLayer.Services;
 /// Service implementation for TemplateCategory operations
 /// Template service - remove in production
 /// </summary>
-public class TemplateCategoryService : BaseService<TemplateCategory, TemplateCategoryDto>, ITemplateCategoryService
+public class TemplateCategoryService : BaseService<TemplateCategory, TemplateCategoryDto, int>, ITemplateCategoryService
 {
     public TemplateCategoryService(IUnitOfWork unitOfWork, IMapper mapper) 
         : base(unitOfWork, mapper)
@@ -54,14 +54,14 @@ public class TemplateCategoryService : BaseService<TemplateCategory, TemplateCat
     public override async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         // Check if category has products
-        var repository = _unitOfWork.GetRepository<TemplateCategory>();
+        var repository = _unitOfWork.GetRepository<TemplateCategory, int>();
         var category = await repository.GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
         
         if (category == null)
             throw new NotFoundException(nameof(TemplateCategory), id);
 
         // Count products in category
-        var productRepository = _unitOfWork.GetRepository<TemplateProduct>();
+        var productRepository = _unitOfWork.GetRepository<TemplateProduct, int>();
         var productsInCategory = await productRepository.FindAsync(p => p.CategoryId == id, cancellationToken).ConfigureAwait(false);
         
         if (productsInCategory.Any())
@@ -74,7 +74,7 @@ public class TemplateCategoryService : BaseService<TemplateCategory, TemplateCat
     {
         try
         {
-            var repository = _unitOfWork.GetRepository<TemplateCategory>();
+            var repository = _unitOfWork.GetRepository<TemplateCategory, int>();
             var categories = await repository.FindAsync(c => c.IsActive, cancellationToken).ConfigureAwait(false);
             
             var sortedCategories = categories.OrderBy(c => c.DisplayOrder).ThenBy(c => c.Name);
@@ -93,7 +93,7 @@ public class TemplateCategoryService : BaseService<TemplateCategory, TemplateCat
 
         try
         {
-            var repository = _unitOfWork.GetRepository<TemplateCategory>();
+            var repository = _unitOfWork.GetRepository<TemplateCategory, int>();
             var categories = await repository.FindAsync(c => c.Name == name.Trim(), cancellationToken).ConfigureAwait(false);
             var category = categories.FirstOrDefault();
             
@@ -109,8 +109,8 @@ public class TemplateCategoryService : BaseService<TemplateCategory, TemplateCat
     {
         try
         {
-            var categoryRepository = _unitOfWork.GetRepository<TemplateCategory>();
-            var productRepository = _unitOfWork.GetRepository<TemplateProduct>();
+            var categoryRepository = _unitOfWork.GetRepository<TemplateCategory, int>();
+            var productRepository = _unitOfWork.GetRepository<TemplateProduct, int>();
             
             var categories = await categoryRepository.GetAllAsync(cancellationToken).ConfigureAwait(false);
             var products = await productRepository.GetAllAsync(cancellationToken).ConfigureAwait(false);
@@ -140,7 +140,7 @@ public class TemplateCategoryService : BaseService<TemplateCategory, TemplateCat
 
         try
         {
-            var repository = _unitOfWork.GetRepository<TemplateCategory>();
+            var repository = _unitOfWork.GetRepository<TemplateCategory, int>();
             
             foreach (var kvp in categoryOrders)
             {

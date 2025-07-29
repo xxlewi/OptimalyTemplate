@@ -4,6 +4,7 @@ using OT.ServiceLayer.Extensions;
 using OT.PresentationLayer.Extensions;
 using OT.PresentationLayer.HealthChecks;
 using OT.PresentationLayer.Middleware;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
 
@@ -43,6 +44,32 @@ try
         .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!, "postgresql");
 
     var app = builder.Build();
+
+    // Apply migrations automatically in development
+    if (app.Environment.IsDevelopment())
+    {
+        using (var scope = app.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            try
+            {
+                // Check if database can be connected and apply migrations if needed
+                if (context.Database.GetPendingMigrations().Any())
+                {
+                    context.Database.Migrate();
+                    app.Logger.LogInformation("Database migrations applied successfully");
+                }
+                else
+                {
+                    app.Logger.LogInformation("Database is up to date, no migrations needed");
+                }
+            }
+            catch (Exception ex)
+            {
+                app.Logger.LogWarning(ex, "Error applying database migrations - continuing startup");
+            }
+        }
+    }
 
     // Security headers middleware - musí být první
     app.UseMiddleware<SecurityHeadersMiddleware>();

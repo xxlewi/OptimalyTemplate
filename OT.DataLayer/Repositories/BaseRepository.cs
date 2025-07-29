@@ -23,6 +23,8 @@ public class BaseRepository<TEntity, TKey> : IRepository<TEntity, TKey>
         _dbSet = _context.Set<TEntity>();
     }
 
+    public virtual IQueryable<TEntity> Query => _dbSet;
+
     public virtual async Task<TEntity?> GetByIdAsync(TKey id, CancellationToken cancellationToken = default)
     {
         return await _dbSet.FindAsync([id], cancellationToken).ConfigureAwait(false);

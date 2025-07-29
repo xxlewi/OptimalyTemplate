@@ -1,10 +1,19 @@
 namespace OT.ServiceLayer.DTOs;
 
 /// <summary>
+/// Interface pro base DTO s podporou různých typů ID
+/// </summary>
+/// <typeparam name="TKey">Typ primárního klíče</typeparam>
+public interface IBaseDto<TKey>
+{
+    TKey Id { get; set; }
+}
+
+/// <summary>
 /// Generický base DTO s podporou různých typů ID
 /// </summary>
 /// <typeparam name="TKey">Typ primárního klíče</typeparam>
-public abstract class BaseDto<TKey>
+public abstract class BaseDto<TKey> : IBaseDto<TKey>
 {
     public TKey Id { get; set; } = default!;
     public DateTime CreatedAt { get; set; }

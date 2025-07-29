@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace OT.DataLayer.Interfaces;
 
@@ -18,6 +19,11 @@ public interface IRepository<TEntity, TKey> where TEntity : class, IBaseEntity<T
     void Update(TEntity entity);
     void Delete(TEntity entity);
     void DeleteRange(IEnumerable<TEntity> entities);
+    
+    /// <summary>
+    /// Provides access to IQueryable for complex queries
+    /// </summary>
+    IQueryable<TEntity> Query { get; }
 }
 
 /// <summary>

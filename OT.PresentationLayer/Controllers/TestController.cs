@@ -58,5 +58,21 @@ public class TestController : ControllerBase
         _logger.LogInformation("Test úspěšného volání");
         return Ok(new { Message = "Everything works correctly!", Timestamp = DateTime.UtcNow });
     }
+
+    [HttpGet("test-products")]
+    public async Task<IActionResult> TestProducts([FromServices] OT.ServiceLayer.Interfaces.ITemplateProductService productService)
+    {
+        try
+        {
+            _logger.LogInformation("Testování template produktů");
+            var products = await productService.GetAllAsync();
+            return Ok(new { Count = products.Count(), Products = products.Take(2) });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Chyba při testování produktů");
+            return BadRequest(new { Error = ex.Message, StackTrace = ex.StackTrace });
+        }
+    }
 }
 #endif

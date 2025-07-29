@@ -65,10 +65,18 @@ public abstract class BaseService<TEntity, TDto, TKey> : IBaseService<TDto, TKey
         
         try
         {
-            var entity = _mapper.Map<TEntity>(dto);
-            _repository.Update(entity);
+            // Načteme existující entitu z databáze
+            var existingEntity = await _repository.GetByIdAsync(((IBaseDto<TKey>)dto).Id, cancellationToken).ConfigureAwait(false);
+            if (existingEntity == null)
+            {
+                throw new NotFoundException(typeof(TEntity).Name, ((IBaseDto<TKey>)dto).Id);
+            }
+            
+            // Mapujeme pouze změněné hodnoty
+            _mapper.Map(dto, existingEntity);
+            _repository.Update(existingEntity);
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-            return _mapper.Map<TDto>(entity);
+            return _mapper.Map<TDto>(existingEntity);
         }
         catch (DbUpdateConcurrencyException ex)
         {

@@ -12,8 +12,8 @@ using OT.DataLayer.Data;
 namespace OT.DataLayer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250729075135_InitialWithCustomUser")]
-    partial class InitialWithCustomUser
+    [Migration("20250729101522_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -159,6 +159,238 @@ namespace OT.DataLayer.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("OT.DataLayer.Entities.TemplateCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("DisplayOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DisplayOrder");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("TemplateCategories", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Elektronické zařízení",
+                            DisplayOrder = 1,
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Elektronika"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Módní oblečení",
+                            DisplayOrder = 2,
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Oblečení"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Knihy a publikace",
+                            DisplayOrder = 3,
+                            IsActive = true,
+                            IsDeleted = false,
+                            Name = "Knihy"
+                        });
+                });
+
+            modelBuilder.Entity("OT.DataLayer.Entities.TemplateProduct", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsFeatured")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("SalePrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Sku")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int>("StockQuantity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("IsFeatured");
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("Sku")
+                        .IsUnique()
+                        .HasFilter("\"Sku\" IS NOT NULL");
+
+                    b.ToTable("TemplateProducts", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_TemplateProduct_Price_Positive", "\"Price\" > 0");
+
+                            t.HasCheckConstraint("CK_TemplateProduct_SalePrice_LessThanPrice", "\"SalePrice\" IS NULL OR \"SalePrice\" < \"Price\"");
+
+                            t.HasCheckConstraint("CK_TemplateProduct_SalePrice_Positive", "\"SalePrice\" IS NULL OR \"SalePrice\" > 0");
+
+                            t.HasCheckConstraint("CK_TemplateProduct_StockQuantity_NonNegative", "\"StockQuantity\" >= 0");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CategoryId = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Nejnovější iPhone s titanovým designem",
+                            IsActive = true,
+                            IsDeleted = false,
+                            IsFeatured = true,
+                            Name = "iPhone 15 Pro",
+                            Price = 32990m,
+                            SalePrice = 29990m,
+                            Sku = "IPH15PRO",
+                            StockQuantity = 15
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CategoryId = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Pokročilý Android smartphone",
+                            IsActive = true,
+                            IsDeleted = false,
+                            IsFeatured = false,
+                            Name = "Samsung Galaxy S24",
+                            Price = 24990m,
+                            Sku = "SGS24",
+                            StockQuantity = 8
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CategoryId = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Elegantní bavlněná košile",
+                            IsActive = true,
+                            IsDeleted = false,
+                            IsFeatured = false,
+                            Name = "Pánská košile",
+                            Price = 1290m,
+                            Sku = "SHIRT001",
+                            StockQuantity = 25
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CategoryId = 3,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Kniha o psaní kvalitního kódu",
+                            IsActive = true,
+                            IsDeleted = false,
+                            IsFeatured = false,
+                            Name = "Čistý kód",
+                            Price = 590m,
+                            Sku = "BOOK001",
+                            StockQuantity = 0
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CategoryId = 2,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Letní šaty v moderním stylu",
+                            IsActive = true,
+                            IsDeleted = false,
+                            IsFeatured = true,
+                            Name = "Dámské šaty",
+                            Price = 2490m,
+                            SalePrice = 1990m,
+                            Sku = "DRESS001",
+                            StockQuantity = 3
+                        });
                 });
 
             modelBuilder.Entity("OT.DataLayer.Entities.User", b =>
@@ -312,6 +544,22 @@ namespace OT.DataLayer.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("OT.DataLayer.Entities.TemplateProduct", b =>
+                {
+                    b.HasOne("OT.DataLayer.Entities.TemplateCategory", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("OT.DataLayer.Entities.TemplateCategory", b =>
+                {
+                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

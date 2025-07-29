@@ -302,17 +302,17 @@ namespace OT.DataLayer.Migrations
 
                     b.HasIndex("Sku")
                         .IsUnique()
-                        .HasFilter("[Sku] IS NOT NULL");
+                        .HasFilter("\"Sku\" IS NOT NULL");
 
                     b.ToTable("TemplateProducts", null, t =>
                         {
-                            t.HasCheckConstraint("CK_TemplateProduct_Price_Positive", "[Price] > 0");
+                            t.HasCheckConstraint("CK_TemplateProduct_Price_Positive", "\"Price\" > 0");
 
-                            t.HasCheckConstraint("CK_TemplateProduct_SalePrice_LessThanPrice", "[SalePrice] IS NULL OR [SalePrice] < [Price]");
+                            t.HasCheckConstraint("CK_TemplateProduct_SalePrice_LessThanPrice", "\"SalePrice\" IS NULL OR \"SalePrice\" < \"Price\"");
 
-                            t.HasCheckConstraint("CK_TemplateProduct_SalePrice_Positive", "[SalePrice] IS NULL OR [SalePrice] > 0");
+                            t.HasCheckConstraint("CK_TemplateProduct_SalePrice_Positive", "\"SalePrice\" IS NULL OR \"SalePrice\" > 0");
 
-                            t.HasCheckConstraint("CK_TemplateProduct_StockQuantity_NonNegative", "[StockQuantity] >= 0");
+                            t.HasCheckConstraint("CK_TemplateProduct_StockQuantity_NonNegative", "\"StockQuantity\" >= 0");
                         });
 
                     b.HasData(

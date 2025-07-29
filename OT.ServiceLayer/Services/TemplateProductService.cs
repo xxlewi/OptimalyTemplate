@@ -13,7 +13,7 @@ namespace OT.ServiceLayer.Services;
 /// Service implementation for TemplateProduct operations
 /// Template service - remove in production
 /// </summary>
-public class TemplateProductService : BaseService<TemplateProduct, TemplateProductDto>, ITemplateProductService
+public class TemplateProductService : BaseService<TemplateProduct, TemplateProductDto, int>, ITemplateProductService
 {
     public TemplateProductService(IUnitOfWork unitOfWork, IMapper mapper) 
         : base(unitOfWork, mapper)
@@ -44,7 +44,7 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
     {
         try
         {
-            var repository = _unitOfWork.GetRepository<TemplateProduct>();
+            var repository = _unitOfWork.GetRepository<TemplateProduct, int>();
             var products = await repository.FindAsync(p => p.CategoryId == categoryId, cancellationToken).ConfigureAwait(false);
             
             return _mapper.Map<IEnumerable<TemplateProductDto>>(products.OrderBy(p => p.Name));
@@ -59,7 +59,7 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
     {
         try
         {
-            var repository = _unitOfWork.GetRepository<TemplateProduct>();
+            var repository = _unitOfWork.GetRepository<TemplateProduct, int>();
             var products = await repository.FindAsync(p => p.IsActive, cancellationToken).ConfigureAwait(false);
             
             return _mapper.Map<IEnumerable<TemplateProductDto>>(products.OrderBy(p => p.Name));
@@ -74,7 +74,7 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
     {
         try
         {
-            var repository = _unitOfWork.GetRepository<TemplateProduct>();
+            var repository = _unitOfWork.GetRepository<TemplateProduct, int>();
             var products = await repository.FindAsync(p => p.IsFeatured && p.IsActive, cancellationToken).ConfigureAwait(false);
             
             return _mapper.Map<IEnumerable<TemplateProductDto>>(products.OrderBy(p => p.Name));
@@ -89,7 +89,7 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
     {
         try
         {
-            var repository = _unitOfWork.GetRepository<TemplateProduct>();
+            var repository = _unitOfWork.GetRepository<TemplateProduct, int>();
             var products = await repository.FindAsync(p => p.SalePrice.HasValue && p.SalePrice < p.Price && p.IsActive, cancellationToken).ConfigureAwait(false);
             
             return _mapper.Map<IEnumerable<TemplateProductDto>>(products.OrderBy(p => p.Name));
@@ -104,7 +104,7 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
     {
         try
         {
-            var repository = _unitOfWork.GetRepository<TemplateProduct>();
+            var repository = _unitOfWork.GetRepository<TemplateProduct, int>();
             var products = await repository.FindAsync(p => p.StockQuantity <= 5 && p.IsActive, cancellationToken).ConfigureAwait(false);
             
             return _mapper.Map<IEnumerable<TemplateProductDto>>(products.OrderBy(p => p.StockQuantity).ThenBy(p => p.Name));
@@ -122,7 +122,7 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
 
         try
         {
-            var repository = _unitOfWork.GetRepository<TemplateProduct>();
+            var repository = _unitOfWork.GetRepository<TemplateProduct, int>();
             var products = await repository.FindAsync(p => p.Sku == sku.Trim(), cancellationToken).ConfigureAwait(false);
             var product = products.FirstOrDefault();
             
@@ -141,7 +141,7 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
 
         try
         {
-            var repository = _unitOfWork.GetRepository<TemplateProduct>();
+            var repository = _unitOfWork.GetRepository<TemplateProduct, int>();
             var term = searchTerm.Trim().ToLower();
             
             var products = await repository.FindAsync(p => 
@@ -158,77 +158,6 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
         }
     }
 
-    public async Task<PagedResult<TemplateProductDto>> GetProductsPagedAsync(
-        int page = 1, 
-        int pageSize = 10,
-        int? categoryId = null,
-        bool? isActive = null,
-        bool? isFeatured = null,
-        string? searchTerm = null,
-        string? sortBy = null,
-        bool sortDescending = false,
-        CancellationToken cancellationToken = default)
-    {
-        if (page < 1) page = 1;
-        if (pageSize < 1 || pageSize > 100) pageSize = 10;
-
-        try
-        {
-            var repository = _unitOfWork.GetRepository<TemplateProduct>();
-            var query = await repository.GetAllAsync(cancellationToken).ConfigureAwait(false);
-
-            // Apply filters
-            if (categoryId.HasValue)
-                query = query.Where(p => p.CategoryId == categoryId.Value);
-
-            if (isActive.HasValue)
-                query = query.Where(p => p.IsActive == isActive.Value);
-
-            if (isFeatured.HasValue)
-                query = query.Where(p => p.IsFeatured == isFeatured.Value);
-
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                var term = searchTerm.Trim().ToLower();
-                query = query.Where(p => 
-                    p.Name.ToLower().Contains(term) || 
-                    (p.Description != null && p.Description.ToLower().Contains(term)) ||
-                    (p.Sku != null && p.Sku.ToLower().Contains(term)));
-            }
-
-            // Apply sorting
-            query = sortBy?.ToLower() switch
-            {
-                "name" => sortDescending ? query.OrderByDescending(p => p.Name) : query.OrderBy(p => p.Name),
-                "price" => sortDescending ? query.OrderByDescending(p => p.Price) : query.OrderBy(p => p.Price),
-                "stock" => sortDescending ? query.OrderByDescending(p => p.StockQuantity) : query.OrderBy(p => p.StockQuantity),
-                "category" => sortDescending ? query.OrderByDescending(p => p.Category.Name) : query.OrderBy(p => p.Category.Name),
-                "created" => sortDescending ? query.OrderByDescending(p => p.CreatedAt) : query.OrderBy(p => p.CreatedAt),
-                _ => query.OrderBy(p => p.Name)
-            };
-
-            var totalItems = query.Count();
-            var items = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-            var dtos = _mapper.Map<List<TemplateProductDto>>(items);
-            
-            // Set category names
-            var categoryRepository = _unitOfWork.GetRepository<TemplateCategory>();
-            var categories = await categoryRepository.GetAllAsync(cancellationToken).ConfigureAwait(false);
-            var categoryDict = categories.ToDictionary(c => c.Id, c => c.Name);
-            
-            foreach (var dto in dtos)
-            {
-                dto.CategoryName = categoryDict.GetValueOrDefault(dto.CategoryId, "Unknown");
-            }
-
-            return PagedResult<TemplateProductDto>.Create(dtos, page, pageSize, totalItems);
-        }
-        catch (Exception ex) when (!(ex is BusinessException || ex is ValidationException || ex is NotFoundException))
-        {
-            throw new BusinessException("Failed to retrieve paged products", ex, "GET_PRODUCTS_PAGED_FAILED");
-        }
-    }
 
     public async Task UpdateStockAsync(int productId, int newQuantity, CancellationToken cancellationToken = default)
     {
@@ -237,7 +166,7 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
 
         try
         {
-            var repository = _unitOfWork.GetRepository<TemplateProduct>();
+            var repository = _unitOfWork.GetRepository<TemplateProduct, int>();
             var product = await repository.GetByIdAsync(productId, cancellationToken).ConfigureAwait(false);
             
             if (product == null)
@@ -264,7 +193,7 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
 
         try
         {
-            var repository = _unitOfWork.GetRepository<TemplateProduct>();
+            var repository = _unitOfWork.GetRepository<TemplateProduct, int>();
             
             foreach (var id in ids)
             {
@@ -303,7 +232,7 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
             throw new ValidationException(nameof(dto.StockQuantity), "Stock quantity cannot be negative");
 
         // Category validation
-        var categoryRepository = _unitOfWork.GetRepository<TemplateCategory>();
+        var categoryRepository = _unitOfWork.GetRepository<TemplateCategory, int>();
         var category = await categoryRepository.GetByIdAsync(dto.CategoryId, cancellationToken).ConfigureAwait(false);
         if (category == null)
             throw new ValidationException(nameof(dto.CategoryId), "Selected category does not exist");
@@ -314,6 +243,80 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
             var existingProduct = await GetBySkuAsync(dto.Sku, cancellationToken).ConfigureAwait(false);
             if (existingProduct != null && (!isUpdate || existingProduct.Id != dto.Id))
                 throw new BusinessException($"Product with SKU '{dto.Sku}' already exists", "PRODUCT_SKU_EXISTS");
+        }
+    }
+
+    public async Task<PagedResult<TemplateProductDto>> GetProductsPagedAsync(
+        int page = 1, 
+        int pageSize = 10,
+        int? categoryId = null,
+        bool? isActive = null,
+        bool? isFeatured = null,
+        string? searchTerm = null,
+        string? sortBy = null,
+        bool sortDescending = false,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Build query with proper eager loading
+            IQueryable<TemplateProduct> query = _repository.Query.Include(p => p.Category);
+            
+            // Apply filters
+            if (categoryId.HasValue)
+                query = query.Where(p => p.CategoryId == categoryId.Value);
+                
+            if (isActive.HasValue)
+                query = query.Where(p => p.IsActive == isActive.Value);
+                
+            if (isFeatured.HasValue)
+                query = query.Where(p => p.IsFeatured == isFeatured.Value);
+                
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+                query = query.Where(p => p.Name.Contains(searchTerm) || 
+                                        (p.Description != null && p.Description.Contains(searchTerm)) ||
+                                        (p.Sku != null && p.Sku.Contains(searchTerm)));
+            
+            // Apply sorting
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                query = sortBy.ToLower() switch
+                {
+                    "name" => sortDescending ? query.OrderByDescending(p => p.Name) : query.OrderBy(p => p.Name),
+                    "price" => sortDescending ? query.OrderByDescending(p => p.Price) : query.OrderBy(p => p.Price),
+                    "stock" => sortDescending ? query.OrderByDescending(p => p.StockQuantity) : query.OrderBy(p => p.StockQuantity),
+                    "category" => sortDescending ? query.OrderByDescending(p => p.Category.Name) : query.OrderBy(p => p.Category.Name),
+                    "created" => sortDescending ? query.OrderByDescending(p => p.CreatedAt) : query.OrderBy(p => p.CreatedAt),
+                    _ => query.OrderBy(p => p.Name)
+                };
+            }
+            else
+            {
+                query = query.OrderBy(p => p.Name);
+            }
+            
+            // Get total count
+            var totalItems = await query.CountAsync(cancellationToken);
+            
+            // Apply pagination
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+            
+            var dtos = _mapper.Map<List<TemplateProductDto>>(items);
+            
+            return new PagedResult<TemplateProductDto>
+            {
+                Items = dtos,
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = totalItems
+            };
+        }
+        catch (Exception ex) when (!(ex is BusinessException || ex is ValidationException || ex is NotFoundException))
+        {
+            throw new BusinessException("Failed to retrieve paged products", ex, "GET_PAGED_PRODUCTS_FAILED");
         }
     }
 }
