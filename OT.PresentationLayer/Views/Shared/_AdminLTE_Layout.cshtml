@@ -97,7 +97,31 @@
                         <img src="https://via.placeholder.com/160x160/007bff/ffffff?text=User" class="img-circle elevation-2" alt="User Image">
                     </div>
                     <div class="info">
-                        <a href="#" class="d-block">Administrátor</a>
+                        @inject UserManager<User> UserManager
+                        @{
+                            string displayName = "Nepřihlášen";
+                            if (User.Identity?.IsAuthenticated == true)
+                            {
+                                var currentUser = await UserManager.GetUserAsync(User);
+                                if (currentUser != null)
+                                {
+                                    var fullName = $"{currentUser.FirstName} {currentUser.LastName}".Trim();
+                                    displayName = !string.IsNullOrEmpty(fullName) ? fullName : currentUser.UserName ?? currentUser.Email ?? "Uživatel";
+                                }
+                                else
+                                {
+                                    displayName = User.Identity.Name ?? "Uživatel";
+                                }
+                            }
+                        }
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <a href="#" class="d-block">@displayName</a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="d-block">@displayName</a>
+                        }
                     </div>
                 </div>
 
@@ -123,6 +147,44 @@
                             </a>
                         </li>
                         
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a asp-area="" asp-controller="Health" asp-action="Index" class="nav-link">
+                                    <i class="nav-icon fas fa-heartbeat"></i>
+                                    <p>Health Check</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="nav-icon fas fa-users"></i>
+                                    <p>Správa uživatelů</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    <button type="submit" class="nav-link btn btn-link text-left" style="color: #c2c7d0; width: 100%; border: none; background: none; padding: 0.5rem 1rem;">
+                                        <i class="nav-icon fas fa-sign-out-alt"></i>
+                                        <span>Odhlásit se</span>
+                                    </button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a asp-controller="Account" asp-action="Login" class="nav-link">
+                                    <i class="nav-icon fas fa-sign-in-alt"></i>
+                                    <p>Přihlášení</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a asp-controller="Account" asp-action="Register" class="nav-link">
+                                    <i class="nav-icon fas fa-user-plus"></i>
+                                    <p>Registrace</p>
+                                </a>
+                            </li>
+                        }
 
                     </ul>
                 </nav>

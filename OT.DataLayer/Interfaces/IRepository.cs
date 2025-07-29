@@ -1,17 +1,29 @@
-using OT.DataLayer.Entities;
 using System.Linq.Expressions;
 
 namespace OT.DataLayer.Interfaces;
 
-public interface IRepository<TEntity> where TEntity : BaseEntity
+/// <summary>
+/// Generický repository interface s podporou různých typů ID
+/// </summary>
+/// <typeparam name="TEntity">Typ entity</typeparam>
+/// <typeparam name="TKey">Typ primárního klíče</typeparam>
+public interface IRepository<TEntity, TKey> where TEntity : class, IBaseEntity<TKey>
 {
-    Task<TEntity?> GetByIdAsync(int id);
-    Task<IEnumerable<TEntity>> GetAllAsync();
-    Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate);
-    Task<TEntity?> SingleOrDefaultAsync(Expression<Func<TEntity, bool>> predicate);
-    Task AddAsync(TEntity entity);
-    Task AddRangeAsync(IEnumerable<TEntity> entities);
+    Task<TEntity?> GetByIdAsync(TKey id, CancellationToken cancellationToken = default);
+    Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
+    Task<TEntity?> SingleOrDefaultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
+    Task AddAsync(TEntity entity, CancellationToken cancellationToken = default);
+    Task AddRangeAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
     void Update(TEntity entity);
-    void Remove(TEntity entity);
-    void RemoveRange(IEnumerable<TEntity> entities);
+    void Delete(TEntity entity);
+    void DeleteRange(IEnumerable<TEntity> entities);
+}
+
+/// <summary>
+/// Repository interface pro entity s int ID (backward compatibility)
+/// </summary>
+/// <typeparam name="TEntity">Typ entity</typeparam>
+public interface IRepository<TEntity> : IRepository<TEntity, int> where TEntity : class, IBaseEntity<int>
+{
 }

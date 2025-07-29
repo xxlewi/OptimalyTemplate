@@ -1,0 +1,67 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Přihlášení";
+    Layout = "_AdminLTE_Layout";
+}
+
+<div class="login-box">
+    <div class="login-logo">
+        <a href="@Url.Action("Index", "Home")"><b>@(ViewData["AppName"] ?? "OptimalyTemplate")</b></a>
+    </div>
+
+    <div class="card">
+        <div class="card-body login-card-body">
+            <p class="login-box-msg">Přihlaste se pro zahájení relace</p>
+
+            <form asp-action="Login" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="ReturnUrl" />
+
+                <div class="input-group mb-3">
+                    <input asp-for="Email" class="form-control" placeholder="Email">
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-envelope"></span>
+                        </div>
+                    </div>
+                </div>
+                <span asp-validation-for="Email" class="text-danger"></span>
+
+                <div class="input-group mb-3">
+                    <input asp-for="Password" class="form-control" placeholder="Heslo">
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-lock"></span>
+                        </div>
+                    </div>
+                </div>
+                <span asp-validation-for="Password" class="text-danger"></span>
+
+                <div class="row">
+                    <div class="col-8">
+                        <div class="icheck-primary">
+                            <input asp-for="RememberMe" type="checkbox" id="remember">
+                            <label for="remember">
+                                Zapamatovat si mě
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <button type="submit" class="btn btn-primary btn-block">Přihlásit</button>
+                    </div>
+                </div>
+            </form>
+
+            <p class="mb-1">
+                <a href="#">Zapomněli jste heslo?</a>
+            </p>
+            <p class="mb-0">
+                <a asp-action="Register" class="text-center">Registrovat nový účet</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

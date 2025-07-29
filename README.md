@@ -11,6 +11,9 @@ OptimalyTemplate is a **production-ready project template** for building scalabl
 - ✅ **PostgreSQL + pgAdmin** Docker setup
 - ✅ **AdminLTE 3.2.0** responsive dashboard
 - ✅ **AutoMapper** for object mapping
+- ✅ **Serilog structured logging** with file and console output
+- ✅ **Global error handling** middleware with custom exceptions
+- ✅ **Health checks** for application, database and PostgreSQL monitoring
 - ✅ **Dynamic configuration** system for easy project forking
 - ✅ **VS Code integration** with F5 debugging
 
@@ -110,6 +113,9 @@ OptimalyTemplate/
 ├── 🏗️ Clean 3-Layer Architecture
 ├── 🔄 Repository & Unit of Work Patterns
 ├── 🗺️ AutoMapper Configuration
+├── 📊 Serilog Structured Logging
+├── 🛡️ Global Error Handling Middleware
+├── 💓 Health Checks & Monitoring
 ├── 🔐 Security Best Practices
 ├── 📝 VS Code Debug Configuration
 ├── 🚀 Dynamic Project Generation
@@ -133,40 +139,167 @@ OptimalyTemplate/
 
 1. **Create Entity** (`OT.DataLayer/Entities/Customer.cs`):
 ```csharp
+namespace OT.DataLayer.Entities;
+
 public class Customer : BaseEntity
 {
-    public string Name { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+    public string? Phone { get; set; }
+    
+    public string FullName => $"{FirstName} {LastName}".Trim();
 }
 ```
 
-2. **Add DbSet** to `ApplicationDbContext.cs`:
+2. **Create Entity Configuration** (`OT.DataLayer/Configurations/CustomerConfiguration.cs`):
+```csharp
+public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
+{
+    public void Configure(EntityTypeBuilder<Customer> builder)
+    {
+        builder.ToTable("Customers");
+        builder.HasKey(c => c.Id);
+        
+        builder.Property(c => c.FirstName).IsRequired().HasMaxLength(100);
+        builder.Property(c => c.LastName).IsRequired().HasMaxLength(100);
+        builder.Property(c => c.Email).IsRequired().HasMaxLength(200);
+        builder.Property(c => c.Phone).HasMaxLength(50);
+        
+        builder.HasIndex(c => c.Email).IsUnique();
+    }
+}
+```
+
+3. **Add DbSet** to `ApplicationDbContext.cs`:
 ```csharp
 public DbSet<Customer> Customers { get; set; }
 ```
 
-3. **Create Migration**:
+4. **Create Migration**:
 ```bash
+cd OT.DataLayer
 dotnet ef migrations add AddCustomer --startup-project ../OT.PresentationLayer
+dotnet ef database update --startup-project ../OT.PresentationLayer
 ```
 
-4. **Create DTO** (`OT.ServiceLayer/DTOs/CustomerDto.cs`):
+5. **Create DTO** (`OT.ServiceLayer/DTOs/CustomerDto.cs`):
 ```csharp
+namespace OT.ServiceLayer.DTOs;
+
 public class CustomerDto : BaseDto
 {
-    public string Name { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+    public string? Phone { get; set; }
+    public string FullName { get; set; } = string.Empty;
 }
 ```
 
-5. **Update AutoMapper** (`OT.ServiceLayer/Mapping/MappingProfile.cs`):
+6. **Update AutoMapper** (`OT.ServiceLayer/Mapping/MappingProfile.cs`):
 ```csharp
 CreateMap<Customer, CustomerDto>().ReverseMap();
 ```
 
-6. **Create Service Interface & Implementation**
-7. **Create ViewModel & Controller**
-8. **Create Views with AdminLTE styling**
+7. **Create Service Interface** (`OT.ServiceLayer/Interfaces/ICustomerService.cs`):
+```csharp
+public interface ICustomerService : IBaseService<CustomerDto>
+{
+    Task<IEnumerable<CustomerDto>> GetByEmailAsync(string email);
+}
+```
+
+8. **Create Service Implementation** (`OT.ServiceLayer/Services/CustomerService.cs`):
+```csharp
+public class CustomerService : BaseService<Customer, CustomerDto>, ICustomerService
+{
+    public CustomerService(IUnitOfWork unitOfWork, IMapper mapper) 
+        : base(unitOfWork, mapper) { }
+        
+    public async Task<IEnumerable<CustomerDto>> GetByEmailAsync(string email)
+    {
+        // Custom business logic here
+    }
+}
+```
+
+9. **Register Service** in `ServiceCollectionExtensions.cs`:
+```csharp
+services.AddScoped<ICustomerService, CustomerService>();
+```
+
+10. **Create ViewModel, Controller & Views** with AdminLTE styling
+
+## 📊 Logging & Error Handling
+
+### Serilog Configuration
+- **Structured logging** with JSON output
+- **File rotation** (daily, 30 days retention)
+- **Request logging** with performance metrics
+- **Environment-based** log levels
+
+Logs are saved to `logs/` directory:
+```
+logs/log-20250729.txt
+logs/log-20250730.txt
+...
+```
+
+### Global Exception Handling
+Custom exceptions with proper HTTP status codes:
+
+```csharp
+// Not Found (404)
+throw new NotFoundException("Customer", customerId);
+
+// Validation Error (400)
+throw new ValidationException("Email", "Email is required");
+
+// Business Logic Error (400)
+throw new BusinessException("Cannot delete active customer", "ACTIVE_CUSTOMER");
+```
+
+### Test Endpoints
+Test error handling at:
+- `GET /api/test/test-not-found` - 404 Error
+- `GET /api/test/test-validation` - 400 Validation Error
+- `GET /api/test/test-business` - 400 Business Error
+- `GET /api/test/test-general` - 500 Internal Error
+- `GET /api/test/test-success` - 200 Success
+
+## 💓 Health Checks & Monitoring
+
+### Health Check Endpoints
+- **`GET /health`** - Detailní JSON report všech health checks
+- **`GET /health/ready`** - Jednoduchá kontrola pro load balancery
+- **`GET /health` (UI)** - AdminLTE dashboard pro health monitoring
+
+### Implementované kontroly
+1. **Application Check** - Stav aplikace, verze, paměť, uptime
+2. **Database Check** - Entity Framework DbContext připojení
+3. **PostgreSQL Check** - Přímé připojení k PostgreSQL databázi
+
+### Příklad JSON response:
+```json
+{
+  "status": "Healthy",
+  "totalDuration": 45.2,
+  "checks": [
+    {
+      "name": "application",
+      "status": "Healthy",
+      "description": "Aplikace běží správně",
+      "duration": 2.1,
+      "data": {
+        "version": "1.0.0",
+        "environment": "Development",
+        "uptime": 1234.5
+      }
+    }
+  ]
+}
+```
 
 ## 🤝 Contributing
 

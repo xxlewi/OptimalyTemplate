@@ -10,18 +10,15 @@ public abstract class BaseService<TEntity, TDto> : IBaseService<TDto>
     where TEntity : BaseEntity
     where TDto : BaseDto
 {
-    protected readonly IRepository<TEntity> _repository;
     protected readonly IUnitOfWork _unitOfWork;
     protected readonly IMapper _mapper;
+    protected readonly IRepository<TEntity> _repository;
 
-    protected BaseService(
-        IRepository<TEntity> repository,
-        IUnitOfWork unitOfWork,
-        IMapper mapper)
+    protected BaseService(IUnitOfWork unitOfWork, IMapper mapper)
     {
-        _repository = repository;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _repository = _unitOfWork.GetRepository<TEntity>();
     }
 
     public virtual async Task<TDto?> GetByIdAsync(int id)
@@ -57,7 +54,7 @@ public abstract class BaseService<TEntity, TDto> : IBaseService<TDto>
         var entity = await _repository.GetByIdAsync(id);
         if (entity != null)
         {
-            _repository.Remove(entity);
+            _repository.Delete(entity);
             await _unitOfWork.SaveChangesAsync();
         }
     }

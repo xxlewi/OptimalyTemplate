@@ -14,8 +14,12 @@ public static class ServiceCollectionExtensions
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        // Registrace UnitOfWork - poskytuje přístup ke všem repositories
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        
+        // Pozor: Repository už neregistrujeme separátně - jsou dostupné přes UnitOfWork
+        // services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        // services.AddScoped<IUserRepository, UserRepository>();
 
         return services;
     }

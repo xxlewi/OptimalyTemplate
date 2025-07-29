@@ -184,6 +184,10 @@ ASALocalRun/
 docker-compose.generated.yml
 init-db/*.generated.sql
 
+# Logs
+logs/
+*.log
+
 # OS generated files
 .DS_Store
 .DS_Store?
