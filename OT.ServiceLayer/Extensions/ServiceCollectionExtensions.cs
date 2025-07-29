@@ -15,8 +15,9 @@ public static class ServiceCollectionExtensions
         // User service registrace
         services.AddScoped<IUserService, UserService>();
         
-        // Register your custom services here
-        // Example: services.AddScoped<ICustomerService, CustomerService>();
+        // Template services - remove in production
+        services.AddScoped<ITemplateCategoryService, TemplateCategoryService>();
+        services.AddScoped<ITemplateProductService, TemplateProductService>();
 
         return services;
     }

@@ -13,7 +13,15 @@ public class MappingProfile : Profile
             .ReverseMap()
             .ForMember(dest => dest.Id, opt => opt.Ignore()); // ID se nenastavuje při vytváření
         
-        // Add your custom entity mappings here
-        // Example: CreateMap<Customer, CustomerDto>().ReverseMap();
+        // Template entity mappings - remove in production
+        CreateMap<TemplateCategory, TemplateCategoryDto>()
+            .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products.Count))
+            .ReverseMap()
+            .ForMember(dest => dest.Products, opt => opt.Ignore()); // Don't map navigation property
+            
+        CreateMap<TemplateProduct, TemplateProductDto>()
+            .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
+            .ReverseMap()
+            .ForMember(dest => dest.Category, opt => opt.Ignore()); // Don't map navigation property
     }
 }

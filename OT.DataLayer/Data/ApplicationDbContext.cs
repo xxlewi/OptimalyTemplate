@@ -14,6 +14,10 @@ public class ApplicationDbContext : IdentityDbContext<User>
 
     // DbSets pro naše entity
     // Poznámka: Users je již definován v IdentityDbContext<User>
+    
+    // Template entities - remove in production
+    public DbSet<TemplateProduct> TemplateProducts { get; set; }
+    public DbSet<TemplateCategory> TemplateCategories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

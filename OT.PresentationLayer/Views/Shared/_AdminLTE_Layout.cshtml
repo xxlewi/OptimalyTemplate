@@ -174,6 +174,12 @@
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
+                                <a asp-area="" asp-controller="TemplateProducts" asp-action="Index" class="nav-link">
+                                    <i class="nav-icon fas fa-cube"></i>
+                                    <p>Template Products</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a asp-area="" asp-controller="Health" asp-action="Index" class="nav-link">
                                     <i class="nav-icon fas fa-heartbeat"></i>
                                     <p>Health Check</p>
