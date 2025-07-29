@@ -26,12 +26,12 @@ public class SecurityHeadersMiddleware
         context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
         context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
         
-        // Content Security Policy - restrictive but allows AdminLTE to work
+        // Content Security Policy - restrictive but allows AdminLTE and FontAwesome to work
         var csp = "default-src 'self'; " +
                   "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net cdnjs.cloudflare.com; " +
                   "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com fonts.googleapis.com; " +
-                  "font-src 'self' fonts.gstatic.com cdn.jsdelivr.net; " +
-                  "img-src 'self' data: cdn.jsdelivr.net; " +
+                  "font-src 'self' fonts.gstatic.com cdn.jsdelivr.net cdnjs.cloudflare.com; " +
+                  "img-src 'self' data: cdn.jsdelivr.net via.placeholder.com; " +
                   "connect-src 'self'; " +
                   "frame-ancestors 'none';";
         
