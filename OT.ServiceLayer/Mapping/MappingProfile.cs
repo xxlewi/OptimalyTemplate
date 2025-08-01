@@ -4,9 +4,13 @@ using OT.ServiceLayer.DTOs;
 
 namespace OT.ServiceLayer.Mapping;
 
-public class MappingProfile : Profile
+/// <summary>
+/// Service layer mapping profile - Entity to DTO mappings
+/// Maps between domain entities and data transfer objects
+/// </summary>
+public class EntityToDtoMappingProfile : Profile
 {
-    public MappingProfile()
+    public EntityToDtoMappingProfile()
     {
         // User entity mapping
         CreateMap<User, UserDto>()

@@ -16,4 +16,9 @@ public class UserDto : BaseDto<string>
     // Computed properties - správně patří do DTO, ne do entity
     public string FullName => $"{FirstName} {LastName}".Trim();
     public string DisplayName => !string.IsNullOrEmpty(FullName) ? FullName : UserName ?? Email ?? "Unknown User";
+    
+    // Time display properties
+    public string CreatedAtDisplay => CreatedAt.Kind == DateTimeKind.Utc 
+        ? CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm") 
+        : CreatedAt.ToString("dd.MM.yyyy HH:mm");
 }

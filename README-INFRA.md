@@ -97,7 +97,7 @@ OT.PresentationLayer/
 ├── HealthChecks/
 │   └── ApplicationHealthCheck.cs    # Custom health check
 ├── Mapping/
-│   └── ViewModelMappingProfile.cs   # AutoMapper DTO → ViewModel
+│   └── DtoToViewModelMappingProfile.cs   # AutoMapper DTO → ViewModel (renamed for clarity)
 └── Extensions/
     └── ServiceCollectionExtensions.cs # Enterprise Identity config
 ```
@@ -138,7 +138,7 @@ OT.ServiceLayer/
 │   ├── ValidationException.cs    # Input validation errors
 │   └── NotFoundException.cs      # Entity not found errors
 ├── Mapping/
-│   └── MappingProfile.cs        # AutoMapper configurations
+│   └── EntityToDtoMappingProfile.cs    # AutoMapper Entity → DTO (renamed for clarity)
 └── Extensions/
     └── ServiceCollectionExtensions.cs
 ```
@@ -259,32 +259,50 @@ builder.Services.AddPresentationLayer();
 
 ## 🗃️ Database Design
 
-### 📋 Base Entity Pattern
-All entities inherit from `BaseEntity`:
+### 📋 Enhanced Base Entity Pattern
+All entities inherit from `BaseEntity` with comprehensive audit trail:
 ```csharp
-public abstract class BaseEntity
+public abstract class BaseEntity : IBaseEntity<int>
 {
     public int Id { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
+    public string? CreatedBy { get; set; }        // 🆕 Who created
+    public string? UpdatedBy { get; set; }        // 🆕 Who updated
     public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }      // 🆕 When deleted
+    public string? DeletedBy { get; set; }        // 🆕 Who deleted
+    
+    // 🆕 Computed properties for UI with proper UTC handling
+    public bool IsActive => !IsDeleted;
+    public TimeSpan Age => DateTime.UtcNow - CreatedAt;
+    public string CreatedAtDisplay => CreatedAt.Kind == DateTimeKind.Utc 
+        ? CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm") 
+        : CreatedAt.ToString("dd.MM.yyyy HH:mm");
+    public string? UpdatedAtDisplay => UpdatedAt?.Kind == DateTimeKind.Utc 
+        ? UpdatedAt?.ToLocalTime().ToString("dd.MM.yyyy HH:mm") 
+        : UpdatedAt?.ToString("dd.MM.yyyy HH:mm");
 }
 ```
 
-### 🔄 Automatic Audit Trail
-`ApplicationDbContext` automatically manages audit fields:
+### 🔄 Enhanced Automatic Audit Trail
+`ApplicationDbContext` automatically manages comprehensive audit fields:
 ```csharp
 public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
 {
+    var currentUserId = _httpContextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    
     foreach (var entry in ChangeTracker.Entries<BaseEntity>())
     {
         switch (entry.State)
         {
             case EntityState.Added:
                 entry.Entity.CreatedAt = DateTime.UtcNow;
+                entry.Entity.CreatedBy = currentUserId;  // 🆕 Who created
                 break;
             case EntityState.Modified:
                 entry.Entity.UpdatedAt = DateTime.UtcNow;
+                entry.Entity.UpdatedBy = currentUserId;  // 🆕 Who updated
                 break;
         }
     }
@@ -345,7 +363,16 @@ services:
 - **Template-based credentials** for easy customization
 - **Soft delete** prevents accidental data loss
 
-### 🔐 CSRF Protection
+### 🔐 Enhanced CSRF Protection
+All forms now include anti-forgery tokens:
+```html
+<!-- All forms automatically protected -->
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()  <!-- 🆕 Added to all forms -->
+    <!-- form content -->
+</form>
+```
+
 ```csharp
 [HttpPost]
 [ValidateAntiForgeryToken]
@@ -362,16 +389,37 @@ public async Task<IActionResult> Create(ProductViewModel model)
 - **Dashboard widgets** with placeholder data
 - **Sidebar navigation** with clean menu structure
 - **Modular components** for easy customization
+- **🆕 Dark mode support** with localStorage persistence
+- **🆕 Theme switching** with toggle button in navigation
 
-### 🧩 Layout Structure
+### 🧩 Enhanced Layout Structure
 ```
 _AdminLTE_Layout.cshtml (Master)
-├── Navbar (top navigation)
-├── Sidebar (left navigation)
+├── Navbar (top navigation with dark mode toggle) 🆕
+├── Sidebar (left navigation with theme support) 🆕
 ├── Content Wrapper
 │   ├── Content Header (breadcrumbs)
 │   └── Main Content (@RenderBody())
 └── Footer
+```
+
+**🆕 Dark Mode Features:**
+```javascript
+// Dark mode with state persistence
+function toggleDarkMode() {
+    if (localStorage.getItem('darkMode') === 'true') {
+        disableDarkMode();
+    } else {
+        enableDarkMode();
+    }
+}
+
+// Automatic theme restoration
+$(document).ready(function() {
+    if (localStorage.getItem('darkMode') === 'true') {
+        enableDarkMode();
+    }
+});
 ```
 
 ## 🚀 Development Workflow
@@ -477,13 +525,16 @@ var products = await repository.Query
     .ToListAsync();
 ```
 
-**AutoMapper Configuration:**
+**Enhanced AutoMapper Configuration:**
 ```csharp
-// Entity to DTO mapping with navigation properties
+// EntityToDtoMappingProfile.cs - Entity to DTO mapping
 CreateMap<TemplateProduct, TemplateProductDto>()
     .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
     .ReverseMap()
     .ForMember(dest => dest.Category, opt => opt.Ignore());
+
+// DtoToViewModelMappingProfile.cs - DTO to ViewModel mapping
+CreateMap<TemplateProductDto, TemplateProductViewModel>().ReverseMap();
 ```
 
 **Update Pattern (Fixed):**
@@ -528,14 +579,42 @@ These template entities serve as **production-ready reference implementations** 
 **🗑️ Removal for Production:**
 Template entities include comments for easy identification and removal when building actual features.
 
+## 🆕 Recent Enhancements (v2.1)
+
+### **🎨 Dark Mode Implementation**
+- Toggle button in navigation bar with moon/sun icon
+- State persistence using localStorage
+- Automatic theme restoration on page load
+- Complete AdminLTE theme switching (sidebar, navbar, content)
+
+### **🗺️ Enhanced Mapping Architecture**
+Clear separation of mapping responsibilities:
+- **EntityToDtoMappingProfile.cs** - Service layer mapping (Entity ↔ DTO)
+- **DtoToViewModelMappingProfile.cs** - Presentation layer mapping (DTO ↔ ViewModel)
+- Improved naming convention for better code navigation and maintenance
+
+### **⏰ UTC Time Handling**
+Proper UTC to local time conversion with:
+- Computed display properties (`CreatedAtDisplay`, `UpdatedAtDisplay`)
+- EF Core UTC conversion configuration
+- Czech locale support with relative time display
+- Consistent dd.MM.yyyy HH:mm formatting
+
+### **🛡️ Security Hardening**
+Enhanced CSRF protection:
+- Anti-forgery tokens added to all forms
+- TemplateProducts forms protected (Create, Edit, Delete)
+- Export forms protected (ExportProducts, ExportCategories, ExportUsers)
+- Consistent security across all POST operations
+
 ## 🎯 Production Readiness
 
 ### ✅ Quality Assurance
 - **Clean Architecture** compliance verified
-- **Security audit** passed
+- **Security audit** passed (with recent CSRF enhancements)
 - **Dependency flow** validated
 - **Best practices** implemented
-- **Production-ready** codebase
+- **Production-ready** codebase with CRM-inspired patterns
 
 ### 🚀 Deployment Considerations
 - Use **Azure Container Instances** or **Docker Swarm** for PostgreSQL
@@ -544,4 +623,10 @@ Template entities include comments for easy identification and removal when buil
 - Use **Azure Database for PostgreSQL** for managed database
 - Configure **SSL/TLS** for production connections
 
-This template provides a solid foundation for enterprise-grade .NET applications following industry best practices! 🏆
+### 📈 Template Evolution
+This template has evolved through:
+1. **Initial Clean Architecture** implementation
+2. **CRM-inspired enhancements** from real-world OptimalyCRM project
+3. **v2.1 improvements** based on production feedback and best practices
+
+The template now represents **enterprise-grade patterns** validated through actual production use! 🏆

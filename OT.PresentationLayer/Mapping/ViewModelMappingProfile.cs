@@ -4,9 +4,13 @@ using OT.PresentationLayer.ViewModels;
 
 namespace OT.PresentationLayer.Mapping;
 
-public class ViewModelMappingProfile : Profile
+/// <summary>
+/// Presentation layer mapping profile - DTO to ViewModel mappings  
+/// Maps between data transfer objects and view models for UI
+/// </summary>
+public class DtoToViewModelMappingProfile : Profile
 {
-    public ViewModelMappingProfile()
+    public DtoToViewModelMappingProfile()
     {
         // Template mappings - remove in production
         CreateMap<TemplateProductDto, TemplateProductViewModel>()

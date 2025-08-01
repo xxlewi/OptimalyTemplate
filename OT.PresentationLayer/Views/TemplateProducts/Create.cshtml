@@ -12,7 +12,8 @@
                     <i class="fas fa-plus"></i> New Product
                 </h3>
             </div>
-            <form asp-action="Create">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">

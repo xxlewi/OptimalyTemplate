@@ -26,6 +26,17 @@ OptimalyTemplate is a **production-ready project template** for building scalabl
 - ✅ **AdminLTE CRUD Views** with pagination, filtering, and client-side validation
 - ✅ **Automated Project Renaming** - One-command transformation to your project
 - ✅ **Production Deployment Ready** - Tested with real application (CoolShop demo)
+- 🆕 **Enhanced BaseEntity** - Comprehensive audit trail with CreatedBy, UpdatedBy, DeletedBy
+- 🆕 **Computed Properties Pattern** - Rich business logic directly in entities for UI
+- 🆕 **Configuration Pattern** - Structured EF Core configuration with separation of concerns
+- 🆕 **Specialized Services** - Global search and export functionality
+- 🆕 **Domain-Specific Exceptions** - Template-specific validation and business exceptions
+- 🆕 **Global Search Controller** - Unified search across all entity types
+- 🆕 **Export Controller** - Multi-format data export (CSV, Excel, JSON, PDF)
+- 🆕 **Enhanced Mapping Profiles** - Clear naming with EntityToDtoMappingProfile and DtoToViewModelMappingProfile
+- 🆕 **Dark Mode Support** - AdminLTE dark theme with localStorage persistence
+- 🆕 **UTC Time Handling** - Proper UTC to local time conversion with computed display properties
+- 🆕 **Security Hardening** - Anti-forgery tokens in all forms for CSRF protection
 
 Perfect for **enterprise applications**, **microservices**, or any project requiring solid architectural foundations.
 
@@ -253,12 +264,13 @@ public class TemplateProduct : BaseEntity
 
 🔸 Service Layer
 ├── DTOs/TemplateProductDto.cs          # Data transfer objects
-├── Services/TemplateProductService.cs  # Business logic implementation
-├── Mapping/MappingProfile.cs           # AutoMapper Entity ↔ DTO
+├── Services/TemplateProductService.cs        # Business logic implementation
+├── Mapping/EntityToDtoMappingProfile.cs      # AutoMapper Entity ↔ DTO (renamed for clarity)
 
 🔸 Presentation Layer
 ├── Controllers/TemplateProductsController.cs  # MVC controller
 ├── ViewModels/TemplateProductViewModel.cs     # UI model with validation
+├── Mapping/DtoToViewModelMappingProfile.cs    # AutoMapper DTO ↔ ViewModel (renamed for clarity)
 ├── Views/TemplateProducts/                    # AdminLTE CRUD views
     ├── Index.cshtml             # List with pagination & filters
     ├── Create.cshtml            # Create form with validation
@@ -355,7 +367,7 @@ public class CustomerDto : BaseDto
 }
 ```
 
-6. **Update AutoMapper** (`OT.ServiceLayer/Mapping/MappingProfile.cs`):
+6. **Update AutoMapper** (`OT.ServiceLayer/Mapping/EntityToDtoMappingProfile.cs`):
 ```csharp
 CreateMap<Customer, CustomerDto>().ReverseMap();
 ```
@@ -438,6 +450,9 @@ options.Password.RequiredUniqueChars = 4;
 // Account lockout settings
 options.Lockout.MaxFailedAccessAttempts = 5;
 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+
+// Anti-forgery token protection
+@Html.AntiForgeryToken()  // Added to all forms for CSRF protection
 ```
 
 **✅ Comprehensive Error Handling:**
@@ -556,6 +571,216 @@ Test error handling at:
   ]
 }
 ```
+
+## 🆕 Recent Enhancements (v2.1)
+
+### **🎨 Dark Mode Support**
+AdminLTE dark theme implementation with persistence:
+```javascript
+// Dark mode toggle with localStorage persistence
+function toggleDarkMode() {
+    if (localStorage.getItem('darkMode') === 'true') {
+        disableDarkMode();
+    } else {
+        enableDarkMode();
+    }
+}
+```
+
+**Features:**
+- Toggle button in navigation bar
+- State persisted in localStorage
+- Applies to sidebar, navbar, and main content
+- Automatic theme restoration on page load
+
+### **🔄 Enhanced Mapping Architecture**
+Clear separation of mapping concerns:
+```
+🔸 Service Layer
+├── EntityToDtoMappingProfile.cs     # Entity ↔ DTO mapping
+
+🔸 Presentation Layer  
+├── DtoToViewModelMappingProfile.cs  # DTO ↔ ViewModel mapping
+```
+
+**Benefits:**
+- Clear naming convention for mapping identification
+- Separation of concerns between layers
+- Easier maintenance and debugging
+- Better understanding of data flow
+
+### **⏰ UTC Time Handling**
+Proper UTC to local time conversion:
+```csharp
+public string CreatedAtDisplay => CreatedAt.Kind == DateTimeKind.Utc 
+    ? CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm") 
+    : CreatedAt.ToString("dd.MM.yyyy HH:mm");
+```
+
+**Features:**
+- Automatic UTC detection and conversion
+- Consistent display formatting (dd.MM.yyyy HH:mm)
+- Czech locale support with relative time display
+- EF Core configuration for proper UTC storage
+
+### **🛡️ Enhanced Security - CSRF Protection**
+Anti-forgery tokens added to all forms:
+```html
+<!-- All forms now include CSRF protection -->
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <!-- form content -->
+</form>
+```
+
+**Protected Forms:**
+- TemplateProducts: Create, Edit, Delete
+- Export: ExportProducts, ExportCategories, ExportUsers
+- All future forms automatically protected
+
+## 🆕 Enhanced Features (CRM-Inspired)
+
+The template has been significantly enhanced with patterns learned from a mature CRM implementation:
+
+### **🏗️ Enhanced BaseEntity with Audit Trail**
+```csharp
+public abstract class BaseEntity : IBaseEntity<int>
+{
+    public int Id { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+    public string? CreatedBy { get; set; }        // 🆕 Who created
+    public string? UpdatedBy { get; set; }        // 🆕 Who updated
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }      // 🆕 When deleted
+    public string? DeletedBy { get; set; }        // 🆕 Who deleted
+    
+    // 🆕 Computed properties for UI with proper UTC handling
+    public bool IsActive => !IsDeleted;
+    public TimeSpan Age => DateTime.UtcNow - CreatedAt;
+    public string CreatedAtDisplay => CreatedAt.Kind == DateTimeKind.Utc 
+        ? CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm") 
+        : CreatedAt.ToString("dd.MM.yyyy HH:mm");
+    public string? UpdatedAtDisplay => UpdatedAt?.Kind == DateTimeKind.Utc 
+        ? UpdatedAt?.ToLocalTime().ToString("dd.MM.yyyy HH:mm") 
+        : UpdatedAt?.ToString("dd.MM.yyyy HH:mm");
+}
+```
+
+### **🎯 Computed Properties Pattern**
+Entities now include rich computed properties for UI display:
+
+```csharp
+public class TemplateProduct : BaseEntity
+{
+    // Regular properties...
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+    public decimal? SalePrice { get; set; }
+    
+    // 🆕 Computed properties for business logic
+    public decimal EffectivePrice => SalePrice ?? Price;
+    public bool IsOnSale => SalePrice.HasValue && SalePrice < Price;
+    public string StockStatusClass => StockQuantity switch
+    {
+        0 => "text-danger",
+        <= 5 => "text-warning", 
+        _ => "text-success"
+    };
+    public string FormattedPrice => Price.ToString("C");
+    public bool IsLowStock => StockQuantity <= 5 && StockQuantity > 0;
+}
+```
+
+### **⚙️ Configuration Pattern with Separation of Concerns**
+```csharp
+public abstract class BaseConfigurableEntityConfiguration<TEntity> : 
+    IEntityTypeConfiguration<TEntity>, IConfigurableEntityConfiguration<TEntity>
+    where TEntity : BaseEntity
+{
+    public virtual void Configure(EntityTypeBuilder<TEntity> builder)
+    {
+        ConfigureBaseEntity(builder);    // Common audit fields
+        ConfigureEntity(builder);        // Entity-specific properties
+        ConfigureRelationships(builder); // Foreign keys and navigation
+        ConfigureIndexes(builder);       // Performance indexes
+        SeedData(builder);              // Demo/test data
+    }
+}
+```
+
+### **🔍 Global Search Service**
+Unified search across all entity types:
+
+```csharp
+public interface ISearchService
+{
+    Task<GlobalSearchResultDto> GlobalSearchAsync(string query, CancellationToken cancellationToken = default);
+    Task<IEnumerable<TDto>> SearchAsync<TDto>(string query, CancellationToken cancellationToken = default);
+    Task<IEnumerable<string>> GetSearchSuggestionsAsync(string partialQuery, int maxResults = 10);
+}
+```
+
+**Usage:**
+- Navigate to `/GlobalSearch` for full search interface
+- AJAX endpoint: `/GlobalSearch/QuickSearch?q=searchterm`
+- Autocomplete: `/GlobalSearch/Suggestions?term=partial`
+
+### **📤 Export Service**
+Multi-format data export functionality:
+
+```csharp
+public interface IExportService
+{
+    Task<byte[]> ExportToExcelAsync<T>(IEnumerable<T> data, string sheetName = "Data");
+    Task<byte[]> ExportToCsvAsync<T>(IEnumerable<T> data, bool includeHeaders = true);
+    Task<byte[]> ExportToPdfAsync<T>(IEnumerable<T> data, string title = "Export");
+    Task<byte[]> ExportToJsonAsync<T>(IEnumerable<T> data, bool formatted = true);
+}
+```
+
+**Usage:**
+- Navigate to `/Export` for export interface
+- Supports Products, Categories, and Users export
+- Available formats: CSV, Excel, JSON, PDF
+
+### **⚠️ Domain-Specific Exceptions**
+Template-specific exceptions for better error handling:
+
+```csharp
+// Validation exceptions
+throw TemplateValidationException.ForProduct("Name", "Název produktu je povinný");
+
+// Business rule exceptions  
+throw TemplateBusinessException.InvalidSalePrice(productId, price, salePrice);
+throw TemplateBusinessException.ProductOutOfStock(productId, productName);
+throw TemplateBusinessException.CategoryHasProducts(categoryId, categoryName, productCount);
+```
+
+### **🎨 UI Enhancements**
+- **Global Search**: Full-text search across products, categories, and users with tabbed results
+- **Export Dashboard**: Visual statistics and multi-format export options
+- **Enhanced Product Cards**: Rich display with computed properties (badges, status indicators)
+- **Advanced Filtering**: Category filtering, status filtering, search integration
+
+### **📊 New Controllers & Endpoints**
+
+| Controller | Purpose | Key Actions |
+|------------|---------|-------------|
+| **GlobalSearchController** | Unified search | `GET /GlobalSearch`, `GET /GlobalSearch/Search`, `GET /GlobalSearch/QuickSearch` |
+| **ExportController** | Data export | `GET /Export`, `POST /Export/ExportProducts`, `POST /Export/ExportCategories` |
+
+### **🚀 Production Notes**
+
+These enhancements are **production-ready** and include:
+
+- ✅ **Performance optimizations** (indexes, query limits, async/await)
+- ✅ **Error handling** with logging and user-friendly messages  
+- ✅ **Security considerations** (input validation, SQL injection prevention)
+- ✅ **Scalability patterns** (bulk operation limits, pagination)
+- ✅ **Extensibility** (generic interfaces, dependency injection)
+
+The template now serves as an excellent foundation for **enterprise applications**, demonstrating mature patterns learned from real-world CRM implementation.
 
 ## 🤝 Contributing
 

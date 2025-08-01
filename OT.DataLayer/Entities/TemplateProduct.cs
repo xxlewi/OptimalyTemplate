@@ -83,4 +83,64 @@ public class TemplateProduct : BaseEntity
         <= 5 => "Málo skladem",
         _ => "Skladem"
     };
+    
+    /// <summary>
+    /// Computed property - stock status CSS class for UI styling
+    /// </summary>
+    public string StockStatusClass => StockQuantity switch
+    {
+        0 => "text-danger",
+        <= 5 => "text-warning", 
+        _ => "text-success"
+    };
+    
+    /// <summary>
+    /// Computed property - product display name with category
+    /// </summary>
+    public string DisplayName => $"{Name} ({Category?.Name ?? "Bez kategorie"})";
+    
+    /// <summary>
+    /// Computed property - formatted price with currency
+    /// </summary>
+    public string FormattedPrice => Price.ToString("C");
+    
+    /// <summary>
+    /// Computed property - formatted effective price with currency
+    /// </summary>
+    public string FormattedEffectivePrice => EffectivePrice.ToString("C");
+    
+    /// <summary>
+    /// Computed property - sale badge text for UI
+    /// </summary>
+    public string? SaleBadge => IsOnSale ? $"-{DiscountPercentage:F0}%" : null;
+    
+    /// <summary>
+    /// Computed property - product status for display
+    /// </summary>
+    public string StatusDisplay => IsActive ? "Aktivní" : "Neaktivní";
+    
+    /// <summary>
+    /// Computed property - product status CSS class
+    /// </summary>
+    public string StatusClass => IsActive ? "text-success" : "text-muted";
+    
+    /// <summary>
+    /// Computed property - is product low in stock (5 or less)
+    /// </summary>
+    public bool IsLowStock => StockQuantity <= 5 && StockQuantity > 0;
+    
+    /// <summary>
+    /// Computed property - is product out of stock
+    /// </summary>
+    public bool IsOutOfStock => StockQuantity == 0;
+    
+    /// <summary>
+    /// Computed property - product summary for lists/dropdowns
+    /// </summary>
+    public string ProductSummary => $"{Name} - {FormattedEffectivePrice} ({StockStatus})";
+    
+    /// <summary>
+    /// Computed property - featured badge for UI
+    /// </summary>
+    public string? FeaturedBadge => IsFeatured ? "Featured" : null;
 }

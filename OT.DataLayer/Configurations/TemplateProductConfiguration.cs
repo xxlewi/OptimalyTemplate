@@ -5,18 +5,18 @@ using OT.DataLayer.Entities;
 namespace OT.DataLayer.Configurations;
 
 /// <summary>
-/// EF Core configuration for TemplateProduct entity
-/// Template configuration - remove in production
+/// Enhanced EF Core configuration for TemplateProduct entity using CRM pattern
+/// Template configuration - remove in production or use as reference
 /// </summary>
-public class TemplateProductConfiguration : IEntityTypeConfiguration<TemplateProduct>
+public class TemplateProductConfiguration : BaseConfigurableEntityConfiguration<TemplateProduct>
 {
-    public void Configure(EntityTypeBuilder<TemplateProduct> builder)
+    /// <summary>
+    /// Configure TemplateProduct-specific properties
+    /// </summary>
+    public override void ConfigureEntity(EntityTypeBuilder<TemplateProduct> builder)
     {
         // Table name
         builder.ToTable("TemplateProducts");
-        
-        // Primary key
-        builder.HasKey(p => p.Id);
         
         // Properties
         builder.Property(p => p.Name)
@@ -45,21 +45,6 @@ public class TemplateProductConfiguration : IEntityTypeConfiguration<TemplatePro
         builder.Property(p => p.IsFeatured)
             .HasDefaultValue(false);
         
-        // Indexes
-        builder.HasIndex(p => p.Name);
-        builder.HasIndex(p => p.Sku)
-            .IsUnique()
-            .HasFilter("\"Sku\" IS NOT NULL"); // Unique only for non-null values
-        builder.HasIndex(p => p.CategoryId);
-        builder.HasIndex(p => p.IsActive);
-        builder.HasIndex(p => p.IsFeatured);
-        
-        // Relationships
-        builder.HasOne(p => p.Category)
-            .WithMany(c => c.Products)
-            .HasForeignKey(p => p.CategoryId)
-            .OnDelete(DeleteBehavior.Restrict);
-        
         // Check constraints - using new API for EF Core 8+
         builder.ToTable(t =>
         {
@@ -68,8 +53,40 @@ public class TemplateProductConfiguration : IEntityTypeConfiguration<TemplatePro
             t.HasCheckConstraint("CK_TemplateProduct_SalePrice_LessThanPrice", "\"SalePrice\" IS NULL OR \"SalePrice\" < \"Price\"");
             t.HasCheckConstraint("CK_TemplateProduct_StockQuantity_NonNegative", "\"StockQuantity\" >= 0");
         });
-        
-        // Seed data
+    }
+    
+    /// <summary>
+    /// Configure relationships for TemplateProduct
+    /// </summary>
+    public override void ConfigureRelationships(EntityTypeBuilder<TemplateProduct> builder)
+    {
+        builder.HasOne(p => p.Category)
+            .WithMany(c => c.Products)
+            .HasForeignKey(p => p.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+    
+    /// <summary>
+    /// Configure indexes for TemplateProduct performance
+    /// </summary>
+    public override void ConfigureIndexes(EntityTypeBuilder<TemplateProduct> builder)
+    {
+        builder.HasIndex(p => p.Name);
+        builder.HasIndex(p => p.Sku)
+            .IsUnique()
+            .HasFilter("\"Sku\" IS NOT NULL"); // Unique only for non-null values
+        builder.HasIndex(p => p.CategoryId);
+        builder.HasIndex(p => p.IsActive);
+        builder.HasIndex(p => p.IsFeatured);
+        builder.HasIndex(p => new { p.IsActive, p.Price }); // Composite index for active products by price
+        builder.HasIndex(p => new { p.CategoryId, p.IsActive }); // Composite for category filtering
+    }
+    
+    /// <summary>
+    /// Seed demo data for TemplateProduct
+    /// </summary>
+    public override void SeedData(EntityTypeBuilder<TemplateProduct> builder)
+    {
         var baseDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         builder.HasData(
             new TemplateProduct 

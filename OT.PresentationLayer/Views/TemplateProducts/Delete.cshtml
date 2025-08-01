@@ -121,6 +121,7 @@
             </div>
             <div class="card-footer">
                 <form asp-action="Delete" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
                     <input asp-for="Id" type="hidden" />
                     <button type="submit" class="btn btn-danger" onclick="return confirm('Are you absolutely sure you want to delete this product? This action cannot be undone.')">
                         <i class="fas fa-trash"></i> Yes, Delete Product

@@ -162,7 +162,7 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
     public async Task UpdateStockAsync(int productId, int newQuantity, CancellationToken cancellationToken = default)
     {
         if (newQuantity < 0)
-            throw new ValidationException(nameof(newQuantity), "Stock quantity cannot be negative");
+            throw TemplateValidationException.ForProduct(productId, nameof(newQuantity), "Skladové množství nemůže být záporné");
 
         try
         {
@@ -191,6 +191,11 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
         if (!ids.Any())
             return;
 
+        // Business rule: limit bulk operations to prevent performance issues
+        const int maxBulkSize = 100;
+        if (ids.Count > maxBulkSize)
+            throw TemplateBusinessException.BulkOperationLimit("Bulk Update Active Status", ids.Count, maxBulkSize);
+
         try
         {
             var repository = _unitOfWork.GetRepository<TemplateProduct, int>();
@@ -215,34 +220,47 @@ public class TemplateProductService : BaseService<TemplateProduct, TemplateProdu
 
     private async Task ValidateProductAsync(TemplateProductDto dto, bool isUpdate, CancellationToken cancellationToken)
     {
-        // Required field validation
+        // Required field validation using template-specific exceptions
         if (string.IsNullOrWhiteSpace(dto.Name))
-            throw new ValidationException(nameof(dto.Name), "Product name is required");
+            throw TemplateValidationException.ForProduct(nameof(dto.Name), "Název produktu je povinný");
 
         if (dto.Price <= 0)
-            throw new ValidationException(nameof(dto.Price), "Product price must be greater than zero");
+            throw TemplateValidationException.ForProduct(nameof(dto.Price), "Cena produktu musí být větší než nula");
 
         if (dto.SalePrice.HasValue && dto.SalePrice <= 0)
-            throw new ValidationException(nameof(dto.SalePrice), "Sale price must be greater than zero");
+            throw TemplateValidationException.ForProduct(nameof(dto.SalePrice), "Akční cena musí být větší než nula");
 
+        // Business rule validation using template-specific exceptions
         if (dto.SalePrice.HasValue && dto.SalePrice >= dto.Price)
-            throw new ValidationException(nameof(dto.SalePrice), "Sale price must be less than regular price");
+        {
+            if (isUpdate && dto.Id > 0)
+                throw TemplateBusinessException.InvalidSalePrice(dto.Id, dto.Price, dto.SalePrice.Value);
+            else
+                throw TemplateValidationException.ForProduct(nameof(dto.SalePrice), "Akční cena musí být nižší než běžná cena");
+        }
 
         if (dto.StockQuantity < 0)
-            throw new ValidationException(nameof(dto.StockQuantity), "Stock quantity cannot be negative");
+            throw TemplateValidationException.ForProduct(nameof(dto.StockQuantity), "Skladové množství nemůže být záporné");
 
-        // Category validation
+        // Category validation with business rules
         var categoryRepository = _unitOfWork.GetRepository<TemplateCategory, int>();
         var category = await categoryRepository.GetByIdAsync(dto.CategoryId, cancellationToken).ConfigureAwait(false);
         if (category == null)
-            throw new ValidationException(nameof(dto.CategoryId), "Selected category does not exist");
+            throw TemplateValidationException.ForProduct(nameof(dto.CategoryId), "Vybraná kategorie neexistuje");
 
-        // SKU uniqueness validation
+        if (!category.IsActive)
+            throw TemplateBusinessException.InactiveCategoryAssignment(dto.CategoryId, category.Name);
+
+        // Product activation validation
+        if (dto.IsActive && dto.CategoryId == 0)
+            throw TemplateBusinessException.ProductActivationWithoutCategory(dto.Id);
+
+        // SKU uniqueness validation with business exception
         if (!string.IsNullOrWhiteSpace(dto.Sku))
         {
             var existingProduct = await GetBySkuAsync(dto.Sku, cancellationToken).ConfigureAwait(false);
             if (existingProduct != null && (!isUpdate || existingProduct.Id != dto.Id))
-                throw new BusinessException($"Product with SKU '{dto.Sku}' already exists", "PRODUCT_SKU_EXISTS");
+                throw TemplateBusinessException.DuplicateSku(dto.Sku, existingProduct.Id);
         }
     }
 

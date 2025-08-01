@@ -11,7 +11,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddPresentationLayer(this IServiceCollection services)
     {
         // PresentationLayer AutoMapper konfigurace
-        services.AddAutoMapper(typeof(ViewModelMappingProfile));
+        services.AddAutoMapper(typeof(DtoToViewModelMappingProfile));
         
         // Configure Identity s enterprise-grade security settings
         services.AddDefaultIdentity<User>(options =>

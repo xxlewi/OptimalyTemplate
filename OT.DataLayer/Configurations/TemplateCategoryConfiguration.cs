@@ -5,18 +5,18 @@ using OT.DataLayer.Entities;
 namespace OT.DataLayer.Configurations;
 
 /// <summary>
-/// EF Core configuration for TemplateCategory entity
-/// Template configuration - remove in production
+/// Enhanced EF Core configuration for TemplateCategory entity using CRM pattern
+/// Template configuration - remove in production or use as reference
 /// </summary>
-public class TemplateCategoryConfiguration : IEntityTypeConfiguration<TemplateCategory>
+public class TemplateCategoryConfiguration : BaseConfigurableEntityConfiguration<TemplateCategory>
 {
-    public void Configure(EntityTypeBuilder<TemplateCategory> builder)
+    /// <summary>
+    /// Configure TemplateCategory-specific properties
+    /// </summary>
+    public override void ConfigureEntity(EntityTypeBuilder<TemplateCategory> builder)
     {
         // Table name
         builder.ToTable("TemplateCategories");
-        
-        // Primary key
-        builder.HasKey(c => c.Id);
         
         // Properties
         builder.Property(c => c.Name)
@@ -31,24 +31,41 @@ public class TemplateCategoryConfiguration : IEntityTypeConfiguration<TemplateCa
             
         builder.Property(c => c.IsActive)
             .HasDefaultValue(true);
-        
-        // Indexes
-        builder.HasIndex(c => c.Name)
-            .IsUnique();
-            
-        builder.HasIndex(c => c.DisplayOrder);
-        
-        // Relationships
+    }
+    
+    /// <summary>
+    /// Configure relationships for TemplateCategory
+    /// </summary>
+    public override void ConfigureRelationships(EntityTypeBuilder<TemplateCategory> builder)
+    {
         builder.HasMany(c => c.Products)
             .WithOne(p => p.Category)
             .HasForeignKey(p => p.CategoryId)
             .OnDelete(DeleteBehavior.Restrict); // Prevent category deletion if has products
-        
-        // Seed data
+    }
+    
+    /// <summary>
+    /// Configure indexes for TemplateCategory performance
+    /// </summary>
+    public override void ConfigureIndexes(EntityTypeBuilder<TemplateCategory> builder)
+    {
+        builder.HasIndex(c => c.Name)
+            .IsUnique();
+            
+        builder.HasIndex(c => c.DisplayOrder);
+        builder.HasIndex(c => new { c.IsActive, c.DisplayOrder }); // Composite for ordering active categories
+    }
+    
+    /// <summary>
+    /// Seed demo data for TemplateCategory
+    /// </summary>
+    public override void SeedData(EntityTypeBuilder<TemplateCategory> builder)
+    {
+        var baseDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         builder.HasData(
-            new TemplateCategory { Id = 1, Name = "Elektronika", Description = "Elektronické zařízení", DisplayOrder = 1, CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new TemplateCategory { Id = 2, Name = "Oblečení", Description = "Módní oblečení", DisplayOrder = 2, CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new TemplateCategory { Id = 3, Name = "Knihy", Description = "Knihy a publikace", DisplayOrder = 3, CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+            new TemplateCategory { Id = 1, Name = "Elektronika", Description = "Elektronické zařízení", DisplayOrder = 1, CreatedAt = baseDate },
+            new TemplateCategory { Id = 2, Name = "Oblečení", Description = "Módní oblečení", DisplayOrder = 2, CreatedAt = baseDate },
+            new TemplateCategory { Id = 3, Name = "Knihy", Description = "Knihy a publikace", DisplayOrder = 3, CreatedAt = baseDate }
         );
     }
 }
