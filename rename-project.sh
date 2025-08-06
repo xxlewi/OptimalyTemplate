@@ -120,14 +120,22 @@ update_file_contents() {
 update_database_config() {
     print_status "Updating database configurations..."
     
-    # Update connection strings
+    # Update Directory.Build.props
+    local props_file="Directory.Build.props"
+    if [ -f "$props_file" ]; then
+        sed -i.bak "s/<AppName>OptimalyTemplate<\/AppName>/<AppName>${NEW_APP_NAME}<\/AppName>/g" "$props_file"
+        rm "${props_file}.bak" 2>/dev/null || true
+        print_success "Updated Directory.Build.props"
+    fi
+    
+    # Update connection strings in appsettings.json
     local config_file="${NEW_APP_NAME}.PresentationLayer/appsettings.json"
     if [ -f "$config_file" ]; then
         sed -i.bak "s/OptimalyTemplate_db/${NEW_APP_NAME_LOWER}_db/g" "$config_file"
         sed -i.bak "s/OptimalyTemplate_user/${NEW_APP_NAME_LOWER}_user/g" "$config_file"
         sed -i.bak "s/OptimalyTemplate2024!/${NEW_APP_NAME}2024!/g" "$config_file"
         rm "${config_file}.bak" 2>/dev/null || true
-        print_success "Updated database configuration"
+        print_success "Updated appsettings.json database configuration"
     fi
 }
 

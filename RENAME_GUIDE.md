@@ -34,9 +34,9 @@ chmod +x rename-project.sh
 
 ### 2. **Renames Files & Directories**
 - `OptimalyTemplate.sln` → `YourAppName.sln`
-- `OT.DataLayer/` → `YourAppName.DataLayer/`
-- `OT.ServiceLayer/` → `YourAppName.ServiceLayer/`
-- `OT.PresentationLayer/` → `YourAppName.PresentationLayer/`
+- `OptimalyTemplate.DataLayer/` → `YourAppName.DataLayer/`
+- `OptimalyTemplate.ServiceLayer/` → `YourAppName.ServiceLayer/`
+- `OptimalyTemplate.PresentationLayer/` → `YourAppName.PresentationLayer/`
 - `*.csproj` files renamed accordingly
 
 ### 3. **Updates File Contents**
@@ -51,8 +51,8 @@ Updates the following file types:
 
 **Replacements performed:**
 - `OptimalyTemplate` → `YourAppName`
-- `OT.` → `YourAppName.`
-- `{{APP_NAME_LOWER}}` → `yourappname`
+- `OptimalyTemplate.` → `YourAppName.`
+- `optimalytemplate` → `yourappname`
 - `optimalytemplate` → `yourappname`
 
 ### 4. **Updates Database Configuration**
@@ -219,7 +219,7 @@ ports:
 - [x] Database connection works
 - [x] Application starts (`dotnet run`)
 - [x] Web interface accessible at http://localhost:5020
-- [x] No remaining `OT.` or `OptimalyTemplate` references
+- [x] No remaining `OptimalyTemplate.` or `OptimalyTemplate` references
 - [x] Docker containers start successfully
 - [x] pgAdmin accessible and configured
 
@@ -238,9 +238,9 @@ ports:
 **Generated Output:**
 ```
 OptimalyTemplate.sln → CoolShop.sln
-OT.DataLayer → CoolShop.DataLayer  
-OT.ServiceLayer → CoolShop.ServiceLayer
-OT.PresentationLayer → CoolShop.PresentationLayer
+OptimalyTemplate.DataLayer → CoolShop.DataLayer  
+OptimalyTemplate.ServiceLayer → CoolShop.ServiceLayer
+OptimalyTemplate.PresentationLayer → CoolShop.PresentationLayer
 Database: coolshop_db, User: coolshop_user
 Docker containers: coolshop-postgres, coolshop-pgadmin
 ```

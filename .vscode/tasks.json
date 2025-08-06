@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/OT.PresentationLayer"
+                "${workspaceFolder}/OptimalyTemplate.PresentationLayer"
             ],
             "problemMatcher": "$msCompile"
         },
@@ -43,7 +43,7 @@
             "command": "bash",
             "args": [
                 "-c",
-                "pkill -f 'dotnet.*OT.PresentationLayer' || true"
+                "pkill -f 'dotnet.*OptimalyTemplate.PresentationLayer' || true"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -61,7 +61,7 @@
         {
             "label": "kill-and-build",
             "type": "shell",
-            "command": "./kill-dotnet.sh && dotnet clean OptimalyTemplate.sln && dotnet build OptimalyTemplate.sln",
+            "command": "./kill-dotnet.sh && rm -rf **/bin **/obj && dotnet clean OptimalyTemplate.sln && dotnet build OptimalyTemplate.sln --no-incremental",
             "options": {
                 "cwd": "${workspaceFolder}"
             },

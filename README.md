@@ -91,7 +91,7 @@ docker-compose -f docker-compose.generated.yml up -d
 ```
 
 ### 5. Update Connection String
-Copy the generated connection string to `OT.PresentationLayer/appsettings.json`:
+Copy the generated connection string to `OptimalyTemplate.PresentationLayer/appsettings.json`:
 ```json
 {
   "ConnectionStrings": {
@@ -102,10 +102,10 @@ Copy the generated connection string to `OT.PresentationLayer/appsettings.json`:
 
 ### 6. Run Migrations & Start App
 ```bash
-cd OT.DataLayer
-dotnet ef database update --startup-project ../OT.PresentationLayer
+cd OptimalyTemplate.DataLayer
+dotnet ef database update --startup-project ../OptimalyTemplate.PresentationLayer
 
-cd ../OT.PresentationLayer
+cd ../OptimalyTemplate.PresentationLayer
 dotnet run
 ```
 
@@ -217,7 +217,7 @@ OptimalyTemplate includes a **complete template entity system** demonstrating be
 
 ### Architecture Layers Covered
 
-**🔸 Entity Layer** (`OT.DataLayer/Entities/`)
+**🔸 Entity Layer** (`OptimalyTemplate.DataLayer/Entities/`)
 ```csharp
 public class TemplateProduct : BaseEntity
 {
@@ -233,18 +233,18 @@ public class TemplateProduct : BaseEntity
 }
 ```
 
-**🔸 Data Layer** (`OT.DataLayer/Configurations/`)
+**🔸 Data Layer** (`OptimalyTemplate.DataLayer/Configurations/`)
 - EF Core configurations with indexes, constraints, and relationships
 - Seed data for development
 - Database migrations
 
-**🔸 Service Layer** (`OT.ServiceLayer/`)
+**🔸 Service Layer** (`OptimalyTemplate.ServiceLayer/`)
 - DTOs with computed properties for UI
 - Business logic services with validation
 - AutoMapper profiles for Entity ↔ DTO mapping
 - Comprehensive error handling
 
-**🔸 Presentation Layer** (`OT.PresentationLayer/`)
+**🔸 Presentation Layer** (`OptimalyTemplate.PresentationLayer/`)
 - ViewModels with validation attributes
 - Controllers with proper error handling
 - AdminLTE views with pagination and filtering
@@ -307,9 +307,9 @@ Files to remove:
 
 ### Adding a New Entity (e.g., Customer)
 
-1. **Create Entity** (`OT.DataLayer/Entities/Customer.cs`):
+1. **Create Entity** (`OptimalyTemplate.DataLayer/Entities/Customer.cs`):
 ```csharp
-namespace OT.DataLayer.Entities;
+namespace OptimalyTemplate.DataLayer.Entities;
 
 public class Customer : BaseEntity
 {
@@ -322,7 +322,7 @@ public class Customer : BaseEntity
 }
 ```
 
-2. **Create Entity Configuration** (`OT.DataLayer/Configurations/CustomerConfiguration.cs`):
+2. **Create Entity Configuration** (`OptimalyTemplate.DataLayer/Configurations/CustomerConfiguration.cs`):
 ```csharp
 public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 {
@@ -348,14 +348,14 @@ public DbSet<Customer> Customers { get; set; }
 
 4. **Create Migration**:
 ```bash
-cd OT.DataLayer
-dotnet ef migrations add AddCustomer --startup-project ../OT.PresentationLayer
-dotnet ef database update --startup-project ../OT.PresentationLayer
+cd OptimalyTemplate.DataLayer
+dotnet ef migrations add AddCustomer --startup-project ../OptimalyTemplate.PresentationLayer
+dotnet ef database update --startup-project ../OptimalyTemplate.PresentationLayer
 ```
 
-5. **Create DTO** (`OT.ServiceLayer/DTOs/CustomerDto.cs`):
+5. **Create DTO** (`OptimalyTemplate.ServiceLayer/DTOs/CustomerDto.cs`):
 ```csharp
-namespace OT.ServiceLayer.DTOs;
+namespace OptimalyTemplate.ServiceLayer.DTOs;
 
 public class CustomerDto : BaseDto
 {
@@ -367,12 +367,12 @@ public class CustomerDto : BaseDto
 }
 ```
 
-6. **Update AutoMapper** (`OT.ServiceLayer/Mapping/EntityToDtoMappingProfile.cs`):
+6. **Update AutoMapper** (`OptimalyTemplate.ServiceLayer/Mapping/EntityToDtoMappingProfile.cs`):
 ```csharp
 CreateMap<Customer, CustomerDto>().ReverseMap();
 ```
 
-7. **Create Service Interface** (`OT.ServiceLayer/Interfaces/ICustomerService.cs`):
+7. **Create Service Interface** (`OptimalyTemplate.ServiceLayer/Interfaces/ICustomerService.cs`):
 ```csharp
 public interface ICustomerService : IBaseService<CustomerDto>
 {
@@ -380,7 +380,7 @@ public interface ICustomerService : IBaseService<CustomerDto>
 }
 ```
 
-8. **Create Service Implementation** (`OT.ServiceLayer/Services/CustomerService.cs`):
+8. **Create Service Implementation** (`OptimalyTemplate.ServiceLayer/Services/CustomerService.cs`):
 ```csharp
 public class CustomerService : BaseService<Customer, CustomerDto, int>, ICustomerService
 {
