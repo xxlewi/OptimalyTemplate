@@ -87,6 +87,9 @@ public class TemplateProductConfiguration : BaseConfigurableEntityConfiguration<
     /// </summary>
     public override void SeedData(EntityTypeBuilder<TemplateProduct> builder)
     {
+        // Seed data removed for testing
+        // Uncomment to add seed data
+        /*
         var baseDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         builder.HasData(
             new TemplateProduct 
@@ -149,5 +152,6 @@ public class TemplateProductConfiguration : BaseConfigurableEntityConfiguration<
                 CreatedAt = baseDate 
             }
         );
+        */
     }
 }

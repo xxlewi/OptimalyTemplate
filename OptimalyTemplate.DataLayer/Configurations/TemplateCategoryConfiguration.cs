@@ -61,11 +61,15 @@ public class TemplateCategoryConfiguration : BaseConfigurableEntityConfiguration
     /// </summary>
     public override void SeedData(EntityTypeBuilder<TemplateCategory> builder)
     {
+        // Seed data removed for testing
+        // Uncomment to add seed data
+        /*
         var baseDate = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         builder.HasData(
             new TemplateCategory { Id = 1, Name = "Elektronika", Description = "Elektronické zařízení", DisplayOrder = 1, CreatedAt = baseDate },
             new TemplateCategory { Id = 2, Name = "Oblečení", Description = "Módní oblečení", DisplayOrder = 2, CreatedAt = baseDate },
             new TemplateCategory { Id = 3, Name = "Knihy", Description = "Knihy a publikace", DisplayOrder = 3, CreatedAt = baseDate }
         );
+        */
     }
 }
